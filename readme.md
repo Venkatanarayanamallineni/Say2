@@ -8,7 +8,7 @@
 
 say2 gives any small business website a front desk. Paste your link, and it reads every page and every PDF on your site: menus, price lists, schedules, the fine print. Then it adds a small chat bubble to your site that answers customers in your voice, any time of day, with a link to where each answer came from.
 
-**[Try it live →](https://say2.onrender.com)** &nbsp;·&nbsp; Demo video: _add link_
+**[Try it live →](https://say2.onrender.com)** &nbsp;·&nbsp; **[See it on a demo café →](https://say2.onrender.com/static/demo/dawn/index.html)** &nbsp;·&nbsp; Demo video: _add link_
 
 ---
 
@@ -25,7 +25,7 @@ Big chains have call centers. The corner café has nobody. say2 is that front de
 1. **Paste your website link** on the say2 page and click **Hire my assistant**. No account needed.
 2. **Watch it read your site.** A receipt prints what it finds: pages, PDF menus, your logo, booking links. Most sites take about a minute.
 3. **Add it to your site.** You get one line of code, with step-by-step help for Wix, Squarespace, WordPress, Shopify and Webflow. Not technical? Use **Send to developer** and forward the ready-made message.
-4. **Make it yours.** Under **Preview & style**, pick its voice (Polished, Warm or Witty), color, light or dark look, and logo.
+4. **Make it yours.** Under **Preview & style**, pick its voice (Polished, Warm or Witty), color, light or dark look, logo, and reading depth (Whole site for the best answers, or Smart pick to keep costs down on big sites).
 5. **Teach it.** Open **Back office** any time to fix answers and fill in gaps.
 
 ## What your customers get
@@ -44,7 +44,7 @@ Big chains have call centers. The corner café has nobody. say2 is that front de
 - **Questions we couldn't answer:** anything your site doesn't cover lands in an inbox. Answer it in one line, and it's learned.
 - **House rules:** plain words like "Always mention our Tuesday special" or "For allergy questions, ask them to call us."
 
-Your answers always come before the website. Only you can open your Back office: it's tied to the browser you used for setup.
+Your answers always come before the website. Only you can open your Back office. It's tied to the browser you used for setup, and your private **owner link** gets you back in from any other browser.
 
 ## Good to know
 
@@ -61,6 +61,22 @@ Your link ─► read every page and PDF ─► rank (pages with prices first) �
 
 There's no vector database and no training step. A small business site fits inside NVIDIA Nemotron's long memory, so every answer is written with the whole site in view. Your Back office answers and house rules go in first, and questions it can't answer go to your inbox.
 
+## Does it make things up? We tested it.
+
+We built a demo café, **Dawn & Drizzle** (menus, a PDF drinks list, hours, catering, a booking page), and asked say2 40 questions with `eval.py`. Every price and link in every answer is checked against the site's own text.
+
+| Check | Result |
+|---|---|
+| Overall | **40 / 40** |
+| Correct answers (the site has the answer) | 26 / 26 |
+| Admits it doesn't know (the site doesn't say) | 9 / 9 |
+| Handles things the business doesn't sell | 5 / 5 |
+| Made-up prices or links | **0** |
+| Average time per answer | 1.8 s |
+| Average cost per answer | $0.0005 |
+
+The first runs scored 38/40 and 35/40. The misses taught us two rules we added: never claim the business doesn't have something just because the site doesn't mention it, and keep Nemotron's reasoning on, because turning it off saved a fraction of a cent and cost us honesty. Run it yourself: `python eval.py demo_data/dawnanddrizzle.json evals/dawnanddrizzle.csv`.
+
 ---
 
 ## For the judges
@@ -69,19 +85,26 @@ There's no vector database and no training step. A small business site fits insi
 
 **How NVIDIA and Nebius are used**
 - **Model:** NVIDIA **Nemotron 3 Super (120B)**, an open model, served through **Nebius Token Factory** with its OpenAI-compatible API.
-- **Every customer answer** is written by Nemotron, reading up to about 250,000 characters of the site per answer.
+- **Every customer answer** is written by Nemotron, reading the whole site (up to about 250,000 characters), or only the matching pages in Smart pick mode.
+- **Reasoning on:** we keep Nemotron's reasoning switched on. In our eval it was the difference between 35/40 and 40/40.
 - **At setup,** Nemotron also works out what kind of business it is and picks the chat bubble's signature icon and motion.
-- **Visible on our own pages:** each answer shows the model, time and tokens used, for example `NVIDIA Nemotron on Nebius · 2.7s · 28,145 tokens · $0.0038` (measured on a large university site).
+- **Visible on our own pages:** each answer shows the model, time and tokens used.
+- **Real numbers:** a small café site costs about $0.0005 per answer at 1.8 s. A large university site, about $0.0038 at 2.7 s. Cost grows with site size, which is why owners can choose Smart pick.
 - **Why Super:** we started with Nemotron 3 Nano (30B) and switched after testing, because Super followed the "never invent facts" and "name the exact item" rules much more reliably.
 
 **Built during the hackathon:** everything here was built during the submission period, starting October 7, 2026.
 
 **Feedback on NVIDIA and Nebius tools:** _fill in before submitting: what worked well, what was confusing, what you'd want next._
 
+## Credits
+
+- Opening wing image generated with Duck.ai.
+- Dawn & Drizzle is a made-up café for the demo. Its logo and menu are our own.
+
 ## Roadmap
 
 - **Auto re-read** on a schedule, so prices and hours stay current.
-- **Domain verification,** so only real owners can set up a site.
+- **Domain verification,** so only real owners can set up a site. Today, whoever sets up a site first owns its assistant, though it only appears on a real website if that site's owner adds the code.
 - **Insights:** the questions customers ask most, and what your site is missing.
 - **Lead capture** for callbacks.
 - **Native Shopify and Wix apps,** so owners never touch code.
@@ -161,12 +184,15 @@ Render's free tier sleeps after 15 minutes without visitors, and its disk resets
 | `static/preview.html` | Preview page |
 | `static/office.html` | Back office |
 | `static/privacy.html` | Privacy and terms |
-| `demo_data/` | Saved demo sites |
+| `demo_data/` | Saved demo sites (Dawn & Drizzle) |
+| `static/demo/dawn/` | The demo café's website |
+| `evals/` | Test questions for `eval.py` |
 
 ### Safety
 - Rate limits per visitor, plus a daily cap across all visitors, to protect API credits.
 - Only the owner's private key can restyle a site, re-read it or open its Back office.
-- The crawler refuses private and internal network addresses.
+- The crawler checks every page, PDF, redirect and logo address, refuses private and internal networks, and caps downloads at 12 MB.
+- Answers are shown as plain text, never as HTML, and only http(s) links are allowed.
 - The API key stays on the server and is never sent to the browser.
 
 </details>

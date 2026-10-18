@@ -52,6 +52,7 @@
   .mark{display:flex;align-items:center;gap:10px;font:400 26px/1 var(--serif);text-decoration:none}
   .logo{display:block;height:var(--h,42px);width:auto;margin:-4px 0 -8px}
   footer .logo{--h:38px}
+  .mark .badge{border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
   .bar nav{display:flex;align-items:center;gap:22px;font-size:15px}
   .bar nav a{text-decoration:none;color:var(--muted);transition:color .3s}
   .bar nav a:hover{color:var(--ink)}
@@ -115,7 +116,7 @@
 
 <header class="top">
   <div class="bar">
-    <a class="mark" href="/"><img class="logo" src="/static/brand/say2_wordmark.svg" alt="say2"></a>
+    <a class="mark" href="/" aria-label="say2 home"><img class="badge" src="/static/brand/say2_icon_dark_64.png" alt="" width="38" height="38"><img class="logo" src="/static/brand/say2_wordmark.svg" alt="say2"></a>
     <nav>
       <a href="/" class="opt">Back to say2</a>
       <a href="#" class="gh" target="_blank" rel="noopener" hidden>GitHub</a>
@@ -236,7 +237,7 @@
 <footer>
   <div class="bar">
     <nav>
-      <a class="mark" href="/"><img src="/static/brand/say2_icon_dark_64.png" alt="say2" width="44" height="44" style="border-radius:50%"></a>
+      <a class="mark" href="/"><img class="logo" src="/static/brand/say2_wordmark.svg" alt="say2"></a>
       <a href="/">Home</a>
       <a href="#" class="gh" target="_blank" rel="noopener" hidden>GitHub</a>
     </nav>

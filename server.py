@@ -6,7 +6,8 @@ from urllib.parse import urlparse
 import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from pydantic import BaseModel
@@ -473,6 +474,15 @@ def site_info(site_id: str):
             "actions": [{"url": a["url"], "kind": a["kind"]} for a in (data.get("actions") or [])][:8],
             "brand": data.get("brand") or colors.get("brand", "#1f2328"),
             "light_logo": colors.get("light_logo", False)}
+
+
+@app.exception_handler(StarletteHTTPException)
+async def not_found(request: Request, exc: StarletteHTTPException):
+    """Browsers get our 404 page; the widget and API keep getting JSON."""
+    api = request.url.path.startswith(("/site", "/setup", "/chat", "/office", "/settings", "/config", "/health"))
+    if exc.status_code == 404 and not api and "text/html" in request.headers.get("accept", ""):
+        return FileResponse("static/404.html", status_code=404)
+    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=getattr(exc, "headers", None))
 
 
 @app.get("/")
