@@ -61,11 +61,20 @@ HEX_OK = re.compile(r"#[0-9a-fA-F]{6}")
 TONE_OK = ("professional", "friendly", "playful")
 
 
+# hosts where many different businesses live under one domain: the path tells them apart
+SHARED_HOSTS = {"sites.google.com": 2, "wixsite.com": 1, "github.io": 1, "linktr.ee": 1,
+                os.getenv("APP_HOST", "say2.onrender.com"): 3, "127.0.0.1": 3, "localhost": 3}
+
+
 def site_id_from(url):
-    host = urlparse(url).netloc.lower()
+    p = urlparse(url)
+    host = p.netloc.lower()
     if host.startswith("www."):        # www.mycafe.com and mycafe.com are the same assistant
         host = host[4:]
-    return re.sub(r"[^a-z0-9_\-]", "_", host)
+    bare = host.split(":")[0]
+    keep = next((n for h, n in SHARED_HOSTS.items() if bare == h or bare.endswith("." + h)), 0)
+    segs = [x for x in p.path.lower().split("/") if x and "." not in x][:keep]   # skip file names like index.html
+    return re.sub(r"[^a-z0-9_\-]", "_", "_".join([host] + segs))[:100]
 
 
 def load_site(site_id):
@@ -158,6 +167,10 @@ class SettingsReq(BaseModel):
     effects: Optional[bool] = None
     emoji: Optional[str] = None
     depth: Optional[str] = None   # "full" reads the whole site, "smart" only matching pages (cheaper)
+
+
+class ClaimReq(BaseModel):
+    action: str   # "start" gives a code, "verify" checks the homepage for it
 
 
 class ChatReq(BaseModel):
@@ -272,6 +285,56 @@ def setup(req: SetupReq, request: Request):
     return {"job": job_id}
 
 
+CLAIM_TAG = re.compile(r"<meta\b[^>]*>", re.I)
+
+
+def homepage_has_code(url, code):
+    """True if the homepage has <meta name="say2-verify" content="CODE"> (any attribute order)."""
+    html = safe_get(url, timeout=12).text
+    for tag in CLAIM_TAG.findall(html):
+        low = tag.lower()
+        if 'say2-verify' in low and code.lower() in low:
+            return True
+    return False
+
+
+@app.post("/claim/{site_id}")
+def claim(site_id: str, req: ClaimReq, request: Request):
+    """The real owner (or a new owner) takes over an assistant by adding a tag to their homepage."""
+    rate_limit(request, "claim", 30, 3600)
+    if not SITE_ID_OK.fullmatch(site_id):
+        raise HTTPException(400, "Bad site id")
+    data = read_own_site(site_id)
+    if not data:
+        raise HTTPException(404, "There's nothing to claim for this site.")
+    week = 7 * 24 * 3600
+    if req.action == "start":
+        if not data.get("claim_code") or time.time() - data.get("claim_t", 0) > week:
+            data["claim_code"] = "say2-" + secrets.token_hex(8)
+            data["claim_t"] = time.time()
+            save_site(site_id, data)
+        code = data["claim_code"]
+        return {"code": code, "tag": f'<meta name="say2-verify" content="{code}">', "homepage": data["site"]}
+    if req.action == "verify":
+        code = data.get("claim_code")
+        if not code or time.time() - data.get("claim_t", 0) > week:
+            raise HTTPException(400, "Start a claim first.")
+        try:
+            found = homepage_has_code(data["site"], code)
+        except Exception:
+            raise HTTPException(400, "We couldn't open your homepage. Check that it's online and try again.")
+        if not found:
+            raise HTTPException(400, "We didn't find the line on your homepage yet. Some site builders take a few minutes to publish.")
+        token = secrets.token_urlsafe(24)
+        data["edit_hash"] = token_hash(token)       # the old owner's key stops working now
+        data["corrections"], data["rules"], data["inbox"] = [], [], []   # fresh start: nothing the previous owner wrote carries over
+        data.pop("claim_code", None); data.pop("claim_t", None)
+        data["claimed_t"] = time.time()
+        save_site(site_id, data)
+        return {"token": token, "site_id": site_id}
+    raise HTTPException(400, "Unknown action.")
+
+
 @app.get("/setup/{job_id}")
 def setup_status(job_id: str):
     if not JOB_ID_OK.fullmatch(job_id) or job_id not in JOBS:
@@ -326,7 +389,12 @@ def chat(req: ChatReq, request: Request):
                and isinstance(h.get("content"), str)]
     t0 = time.time()
     try:
-        res = ask(data, history, q)
+        try:
+            res = ask(data, history, q)
+        except Exception as first:          # one quick retry: the model service occasionally drops a request
+            print("chat retry after:", repr(first))
+            time.sleep(0.8)
+            res = ask(data, history, q)
     except Exception as e:
         print("model error", e)
         raise HTTPException(502, "The assistant is busy right now. Please try again.")
@@ -479,7 +547,7 @@ def site_info(site_id: str):
 @app.exception_handler(StarletteHTTPException)
 async def not_found(request: Request, exc: StarletteHTTPException):
     """Browsers get our 404 page; the widget and API keep getting JSON."""
-    api = request.url.path.startswith(("/site", "/setup", "/chat", "/office", "/settings", "/config", "/health"))
+    api = request.url.path.startswith(("/site", "/setup", "/chat", "/office", "/settings", "/config", "/health", "/claim"))
     if exc.status_code == 404 and not api and "text/html" in request.headers.get("accept", ""):
         return FileResponse("static/404.html", status_code=404)
     return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=getattr(exc, "headers", None))

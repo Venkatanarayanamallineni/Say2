@@ -46,6 +46,8 @@ Big chains have call centers. The corner café has nobody. say2 is that front de
 
 Your answers always come before the website. Only you can open your Back office. It's tied to the browser you used for setup, and your private **owner link** gets you back in from any other browser.
 
+**Someone else set up your site first, or the business changed hands?** Paste your link and click **Claim it**. Add the one line say2 gives you to your homepage, click verify, and the assistant is yours. The previous owner's access ends right away. Only someone who controls the website can do this.
+
 ## Good to know
 
 - **AI can still be wrong,** and websites go out of date. Every chat window reminds customers to confirm allergies and anything important with you.
@@ -104,7 +106,6 @@ The first runs scored 38/40 and 35/40. The misses taught us two rules we added: 
 ## Roadmap
 
 - **Auto re-read** on a schedule, so prices and hours stay current.
-- **Domain verification,** so only real owners can set up a site. Today, whoever sets up a site first owns its assistant, though it only appears on a real website if that site's owner adds the code.
 - **Insights:** the questions customers ask most, and what your site is missing.
 - **Lead capture** for callbacks.
 - **Native Shopify and Wix apps,** so owners never touch code.

@@ -20,6 +20,30 @@ ACTION_HOSTS = ("opentable", "resy.com", "toasttab", "calendly", "vagaro", "book
 SKIP_HOSTS = ("facebook.", "instagram.", "twitter.", "x.com", "tiktok.", "youtube.", "linkedin.", "pinterest.")
 
 
+# Hosts where many different sites live under one domain, told apart by the path.
+# value = how many path parts name the site (sites.google.com/view/NAME -> 2)
+# keep in sync with SHARED_HOSTS in server.py
+SHARED_HOSTS = {"sites.google.com": 2, "wixsite.com": 1, "github.io": 1, "linktr.ee": 1,
+                os.getenv("APP_HOST", "say2.onrender.com"): 3, "127.0.0.1": 3, "localhost": 3}
+
+
+def site_scope(url):
+    """(host, path prefix) that identifies one site. Path prefix is "" for normal sites."""
+    p = urlparse(url)
+    host = (p.hostname or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    n = next((v for h, v in SHARED_HOSTS.items() if host == h or host.endswith("." + h)), 0)
+    if not n:
+        return host, ""
+    parts = [x for x in p.path.lower().split("/") if x and "." not in x][:n]   # skip file names like index.html
+    return host, "/" + "/".join(parts) if parts else ""
+
+
+def in_scope(url, scope):
+    return site_scope(url)[0] == scope[0] and urlparse(url).path.lower().startswith(scope[1])
+
+
 def is_public_url(url):
     """Only real public websites. Blocks localhost, private networks (10.x, 192.168.x ...),
     and cloud metadata addresses like 169.254.169.254."""
@@ -27,8 +51,11 @@ def is_public_url(url):
         p = urlparse(url)
         if p.scheme not in ("http", "https") or not p.hostname:
             return False
+        local_ok = os.getenv("ALLOW_LOCAL") == "1"   # dev only: lets you test with a site on your own computer
         for info in socket.getaddrinfo(p.hostname, p.port or (443 if p.scheme == "https" else 80)):
             ip = ipaddress.ip_address(info[4][0])
+            if local_ok and ip.is_loopback:
+                continue
             if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast or ip.is_unspecified:
                 return False
         return True
@@ -121,7 +148,7 @@ def maybe_action(a, link, actions):
 def crawl(start_url, progress=None):
     """progress(event, info) is called as we go, so the setup page can show real steps."""
     say = progress or (lambda event, info: None)
-    domain = urlparse(start_url).netloc.replace("www.", "")
+    scope = site_scope(start_url)   # stay inside this one site, even on shared hosts
     to_visit, seen, pages = [start_url], set(), []
     logo = None
     site_name = None
@@ -182,7 +209,7 @@ def crawl(start_url, progress=None):
                 continue
             if link.lower().endswith(".pdf"):
                 to_visit.insert(0, link)  # PDFs first, often menus/price lists
-            elif urlparse(link).netloc.replace("www.", "") == domain:
+            elif in_scope(link, scope):
                 to_visit.append(link)
 
         for tag in soup(["script", "style", "noscript", "nav", "footer", "header"]):

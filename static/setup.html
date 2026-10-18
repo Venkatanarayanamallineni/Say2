@@ -233,6 +233,9 @@
   .owner b{display:block;font-weight:500;font-size:14.5px}
   .owner small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-top:2px}
   .owner .ghost{flex:none;white-space:nowrap}
+  .owner[hidden],.claimsteps[hidden]{display:none}
+  .claimsteps{margin:12px 20px 0;padding:14px;border:1px solid var(--line);border-radius:14px;font-size:14.5px}
+  .claimsteps p{margin:0 0 10px;color:var(--muted)}
   .hint-sm{margin:6px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45;max-width:46ch}
   .tabs{display:flex;gap:4px;margin:18px 20px 0;padding:4px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
   .tabs button{flex:1;border:none;background:none;font:inherit;font-size:13.5px;line-height:1.25;color:var(--muted);padding:8px 6px;white-space:nowrap;border-radius:999px;cursor:pointer;transition:background .3s,color .3s,box-shadow .3s}
@@ -575,6 +578,15 @@
           <span class="seal mono-on" id="insSeal" aria-hidden="true"><span class="mono" id="insMono"></span></span>
           <div><b id="insTitle">Your assistant is hired.</b><small id="insSub">Here's how to put it to work.</small></div>
         </div>
+        <div class="owner" id="claim" hidden>
+          <div><b>Is this your business?</b><small>Claim it to manage this assistant. You'll add one line to your homepage to prove the site is yours.</small></div>
+          <button class="ghost" id="claimStart" type="button">Claim it</button>
+        </div>
+        <div class="claimsteps" id="claimSteps" hidden>
+          <p>Add this line inside the <code>&lt;head&gt;</code> of your homepage, publish, then verify. Once verified, the old owner's access ends.</p>
+          <div class="codebox" id="claimTag"></div>
+          <div class="btns"><button class="copy" id="copyTag" type="button">Copy line</button><button class="copy" id="claimVerify" type="button">I added it, verify</button><span class="saved" id="claimMsg" role="status"></span></div>
+        </div>
         <div class="owner" id="owner" hidden>
           <div><b>Your private owner link</b><small>Save it somewhere safe. Open it in any browser to get your Back office back. Don't share it.</small></div>
           <button class="ghost" id="copyOwner" type="button">Copy owner link</button>
@@ -847,18 +859,49 @@ paintThemeButton();
 
 /* ---------- owner tokens remembered in this browser ---------- */
 const TOKENS_KEY = "fa_tokens";
+async function claimCall(action) {
+  const r = await fetch(`/claim/${current.sid}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof d.detail === "string" ? d.detail : "Something went wrong. Try again.");
+  return d;
+}
+document.addEventListener("click", async e => {
+  if (e.target.id === "claimStart") {
+    try { const d = await claimCall("start"); $("claimTag").textContent = d.tag; $("claimSteps").hidden = false; $("claimMsg").textContent = ""; }
+    catch (err) { $("claimMsg").textContent = err.message; $("claimSteps").hidden = false; }
+  }
+  if (e.target.id === "copyTag") {
+    try { await navigator.clipboard.writeText($("claimTag").textContent); $("claimMsg").textContent = "Copied."; } catch { $("claimMsg").textContent = "Select the line and copy it."; }
+  }
+  if (e.target.id === "claimVerify") {
+    const btn = e.target; btn.disabled = true; $("claimMsg").textContent = "Checking your homepage…";
+    try {
+      const d = await claimCall("verify");
+      saveToken(d.site_id, d.token);
+      const L = lastInstall; showInstall(L.sid, L.info, L.name, d.token);
+      $("claimMsg").textContent = ""; sayNow(`It's yours. You now manage ${L.name}.`);
+    } catch (err) { $("claimMsg").textContent = err.message; }
+    finally { btn.disabled = false; }
+  }
+});
+
 function getTokens() { try { return JSON.parse(localStorage.getItem(TOKENS_KEY) || "{}"); } catch { return {}; } }
 function saveToken(sid, tok) { try { const t = getTokens(); t[sid] = tok; localStorage.setItem(TOKENS_KEY, JSON.stringify(t)); } catch {} }
 (() => {
   const m = location.hash.match(/^#own=([a-z0-9_\-]{1,100})\.([A-Za-z0-9_\-]{16,64})$/);
   if (!m) return;
   saveToken(m[1], m[2]);
-  history.replaceState(null, "", location.pathname);
-  addEventListener("load", () => {
-    sayNow(`Welcome back. This browser now has your owner key for ${m[1].replace(/_/g, ".")}. Paste your link to open your install card.`);
-  });
+  location.replace(`/static/office.html?site=${m[1]}&welcome=1`);   // straight to their Back office
 })();
-const siteIdOf = url => { try { return new URL(url).host.toLowerCase().replace(/^www\./, "").replace(/[^a-z0-9_\-]/g, "_"); } catch { return ""; } };
+const SHARED_HOSTS = { "sites.google.com": 2, "wixsite.com": 1, "github.io": 1, "linktr.ee": 1, [location.hostname]: 3, "say2.onrender.com": 3, "127.0.0.1": 3, "localhost": 3 };
+const siteIdOf = url => {   // must match site_id_from() in server.py
+  try {
+    const u = new URL(url), host = u.host.toLowerCase().replace(/^www\./, ""), bare = host.split(":")[0];
+    const keep = Object.entries(SHARED_HOSTS).find(([h]) => bare === h || bare.endsWith("." + h))?.[1] || 0;
+    const segs = u.pathname.toLowerCase().split("/").filter(x => x && !x.includes(".")).slice(0, keep);
+    return [host, ...segs].join("_").replace(/[^a-z0-9_\-]/g, "_").slice(0, 100);
+  } catch { return ""; }
+};
 
 /* ---------- line icons ---------- */
 const P = d => `<path pathLength="1" d="${d}"/>`;
@@ -1140,8 +1183,11 @@ $("saveStyle").onclick = async () => {
   finally { btn.disabled = false; }
 };
 
+let lastInstall = null;
 function showInstall(sid, info, name, token) {
+  lastInstall = { sid, info, name };
   current = { sid, token: token || "" };
+  $("claim").hidden = !!token; $("claimSteps").hidden = true; $("claimMsg").textContent = "";
   const dep = document.querySelector(`input[name=depth][value="${info.depth === "smart" ? "smart" : "full"}"]`); if (dep) dep.checked = true;
   $("owner").hidden = !token;
   if (token) $("copyOwner").onclick = async () => {
@@ -1238,7 +1284,7 @@ $("f").addEventListener("submit", async e => {
   let result = null, token = "";
   if (d.existing) {
     line("ALREADY HIRED", "YES");
-    note("Someone already set up this site. Only they can re-read it.");
+    note("Someone already set up this site. Is it yours? Claim it below.");
     result = d;
   } else {
     // follow the real progress from the server
