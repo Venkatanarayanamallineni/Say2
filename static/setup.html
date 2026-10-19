@@ -242,6 +242,16 @@
   .tabs button:hover{color:var(--ink)}
   .tabs button[aria-selected=true]{background:var(--paper-2);color:var(--ink);box-shadow:0 4px 12px -4px rgba(36,33,29,.25)}
   .tabs .short{display:none}
+  .tabs .n{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;border-radius:50%;border:1px solid currentColor;font:italic 400 11.5px/1 var(--serif);vertical-align:1px;opacity:.75}
+  .tabs .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:#B4232F;color:#fff;font:600 11px/1 var(--sans,inherit);vertical-align:1px}
+  .tabs .badge[hidden]{display:none}
+  .how-install{margin:0 0 14px;font-size:14.5px;color:var(--muted)}
+  .how-install b{color:var(--ink);font-weight:600}
+  .devlink{display:block;margin:16px 0 0;padding:0;border:0;background:none;font:inherit;font-size:14px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .devbox{margin-top:12px}
+  .devbox[hidden]{display:none}
+  .next-step{margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+  .next-step b{color:var(--ink);font-weight:600}
   .tabpane{padding:18px 20px 22px}
   .tabpane[hidden]{display:none}
   .codebox{background:#1C1915;border:1px solid var(--line);color:#E9E2D4;border-radius:16px;padding:16px 18px;font:13.5px/1.65 var(--receipt);word-break:break-all}
@@ -354,6 +364,25 @@
   .stage.s2 .pdf div:nth-of-type(2) em{transition-delay:.25s}
   .stage.s2 .pdf div:nth-of-type(3) em{transition-delay:.5s}
   .stage.s3 .mchat p{opacity:1;transform:none}
+  /* step 4: a question it can't answer goes to the owner, the owner replies once, the next customer gets it */
+  .learn{position:absolute;right:11%;bottom:6%;width:58%;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+  .learn>*{margin:0;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .45s var(--spring)}
+  .learn p{padding:6px 10px;border-radius:13px;font-size:12.5px;line-height:1.3}
+  .learn .u{align-self:flex-end;background:var(--solid);color:var(--on-solid);border-bottom-right-radius:4px}
+  .learn .b{align-self:flex-start;background:var(--paper);border-bottom-left-radius:4px}
+  .learn .oc{align-self:center;width:86%;background:var(--paper-2);border:1px solid var(--brass);border-radius:12px;padding:7px 10px;font-size:12px;box-shadow:var(--soft);display:grid;grid-template-columns:1fr auto;gap:1px 8px}
+  .learn .oc span{grid-column:1/-1;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .learn .oc q{quotes:"\201C" "\201D";color:var(--muted)}
+  .learn .oc em{font-style:normal;font-weight:600;grid-column:1}
+  .learn .oc i{grid-row:2/4;grid-column:2;align-self:center;font-style:normal;font-size:11px;color:#2F7A4F;border:1px solid currentColor;border-radius:999px;padding:2px 8px}
+  .stage.s4 .learn>*{opacity:1;transform:none}
+  .stage.s4 .learn>:nth-child(2){transition-delay:.7s}
+  .stage.s4 .learn>:nth-child(3){transition-delay:1.9s}
+  .stage.s4 .learn>:nth-child(4){transition-delay:3.6s}
+  .stage.s4 .learn>:nth-child(5){transition-delay:4.3s}
+  .stage.s4 .learn>:nth-child(1),.stage.s4 .learn>:nth-child(2){animation:dim .01s linear 3.4s forwards}
+  @keyframes dim{to{opacity:.35}}
+  .stage.s4 .rows{opacity:.3;transition:opacity .4s}
   .stage.s3 .mchat p:nth-child(2){transition-delay:.25s}
   .stage.s3 .mchat p:nth-child(3){transition-delay:.5s}
   .beats article{min-height:66vh;display:flex;flex-direction:column;justify-content:center}
@@ -470,7 +499,7 @@
     /* phones and tablets: the demo plays, the three steps sit right under it and light up in time with it */
     .stage-wrap{position:static;height:auto;padding:0 0 4px}
     .beats{display:grid}
-    .stepbar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 6px}
+    .stepbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 6px}
     .stepbar button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:4px 0;font-size:13px;color:var(--muted);transition:color .3s}
     .stepbar button.cur{color:var(--ink)}
     .stepbar .tr{height:3px;border-radius:2px;background:var(--track);overflow:hidden}
@@ -478,6 +507,11 @@
     .beats article{grid-area:2/1;min-height:0;justify-content:flex-start;padding:8px 0 0;opacity:0;transition:opacity .45s;pointer-events:none}
     .beats article.on{opacity:1;pointer-events:auto}
     .beats .num{display:none}
+    /* small screens: the first question slides away once the owner's answer arrives, so everything fits */
+    .learn{right:4%;width:80%}
+    .learn>*{max-height:90px}
+    .stage.s4 .learn>:nth-child(1),.stage.s4 .learn>:nth-child(2){animation:gone .45s ease 3.3s forwards}
+    @keyframes gone{to{opacity:0;max-height:0;padding-top:0;padding-bottom:0;margin-top:-5px}}
     .beats h3{font-size:30px;max-width:none;opacity:1} .beats p{font-size:16.5px;opacity:1}
     .grid{grid-template-columns:1fr 1fr}
     /* timeline and pipeline: swipe sideways, the next card peeks in, dots show where you are */
@@ -578,7 +612,7 @@
   <section class="hero">
     <div>
       <h1 class="rise" aria-label="Your website, now taking questions."><span class="l1">Your <span id="word">café's</span></span> website, now taking questions.</h1>
-      <p class="lead rise" style="--d:2">Paste a link. We read your pages, your PDFs, every bit of fine print. Your customers get answers in seconds, in your voice, with sources.</p>
+      <p class="lead rise" style="--d:2">Paste a link. We read your pages, your PDFs, every bit of fine print. Your customers get answers in seconds, with sources. Anything it can't answer comes to you, and your reply is used next time.</p>
 
       <form id="f" class="rise" style="--d:3" novalidate>
         <div class="door">
@@ -617,14 +651,14 @@
           <div><b>Your private owner link</b><small>Save it somewhere safe. Open it in any browser to get your Back office back. Don't share it.</small></div>
           <button class="ghost" id="copyOwner" type="button">Copy owner link</button>
         </div>
-        <div class="tabs" role="tablist" aria-label="Install options">
-          <button role="tab" id="t1" aria-controls="p1" aria-selected="true"><span class="full">Add it myself</span><span class="short">Myself</span></button>
-          <button role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><span class="full">Send to developer</span><span class="short">Developer</span></button>
-          <button role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1"><span class="full">Preview &amp; style</span><span class="short">Preview</span></button>
-          <button role="tab" id="t4" aria-controls="p4" aria-selected="false" tabindex="-1"><span class="full">Back office</span><span class="short">Office</span></button>
+        <div class="tabs" role="tablist" aria-label="Three steps">
+          <button role="tab" id="t3" aria-controls="p3" aria-selected="true"><i class="n">1</i><span class="full">Preview &amp; style</span><span class="short">Preview</span></button>
+          <button role="tab" id="t1" aria-controls="p1" aria-selected="false" tabindex="-1"><i class="n">2</i><span class="full">Install</span><span class="short">Install</span></button>
+          <button role="tab" id="t4" aria-controls="p4" aria-selected="false" tabindex="-1"><i class="n">3</i><span class="full">Back office</span><span class="short">Office</span><b class="badge" id="inboxBadge" hidden></b></button>
         </div>
 
-        <div class="tabpane" id="p1" role="tabpanel" aria-labelledby="t1">
+        <div class="tabpane" id="p1" role="tabpanel" aria-labelledby="t1" hidden>
+          <p class="how-install"><b>You copy one line into your website.</b> say2 never logs in to your site or changes it. About two minutes, and you can remove it any time.</p>
           <div class="codebox" id="codebox"></div>
           <div class="btns"><button class="copy" id="copyCode" type="button">Copy code</button></div>
           <div class="where">
@@ -632,14 +666,15 @@
             <div class="plats" id="plats"></div>
             <p class="howto" id="howto">Pick your site builder for the exact steps.</p>
           </div>
+          <button class="devlink" id="devToggle" type="button" aria-expanded="false" aria-controls="p2">Not technical? Send it to your developer</button>
+          <div class="devbox" id="p2" hidden>
+            <textarea class="msg" id="msg" aria-label="Message for your developer"></textarea>
+            <div class="btns"><button class="copy" id="copyMsg" type="button">Copy message</button><a class="ghost" id="mailMsg" href="#">Open in email</a></div>
+          </div>
+          <p class="next-step">Then open <b>3 · Back office</b>: questions it couldn't answer wait there for you.</p>
         </div>
 
-        <div class="tabpane" id="p2" role="tabpanel" aria-labelledby="t2" hidden>
-          <textarea class="msg" id="msg" aria-label="Message for your developer"></textarea>
-          <div class="btns"><button class="copy" id="copyMsg" type="button">Copy message</button><a class="ghost" id="mailMsg" href="#">Open in email</a></div>
-        </div>
-
-        <div class="tabpane" id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+        <div class="tabpane" id="p3" role="tabpanel" aria-labelledby="t3">
           <div class="frame"><div class="fbar"><span id="frameUrl">preview</span></div><iframe id="frame" title="Preview of your assistant"></iframe></div>
           <div class="btns"><a class="ghost" id="openPrev" target="_blank" rel="noopener">Open full preview ↗</a></div>
 
@@ -740,6 +775,13 @@
               <div class="rows" id="mRows"></div>
               <div class="pdf" id="mPdf"></div>
               <div class="mchat"><p class="u" id="mQ"></p><p class="b" id="mA"></p><p class="chip" id="mChip"></p></div>
+              <div class="learn">
+                <p class="u">Is there parking?</p>
+                <p class="b">I'm not sure. I've passed it to the owner.</p>
+                <div class="oc"><span>Back office</span><q>Is there parking?</q><em>Free lot behind us.</em><i>Learned</i></div>
+                <p class="u">Any parking nearby?</p>
+                <p class="b">Yes, there's a free lot behind us.</p>
+              </div>
               <span class="counter" id="counter">Reading pages… 0</span>
             </div>
             <div class="scan"></div>
@@ -752,9 +794,10 @@
 
     <div class="beats">
       <div class="stepbar" id="stepbar">
-        <button data-s="1"><span class="tr"><i></i></span>Reads your site</button>
-        <button data-s="2"><span class="tr"><i></i></span>Even the PDFs</button>
+        <button data-s="1"><span class="tr"><i></i></span>Reads</button>
+        <button data-s="2"><span class="tr"><i></i></span>PDFs</button>
         <button data-s="3"><span class="tr"><i></i></span>Answers</button>
+        <button data-s="4"><span class="tr"><i></i></span>Learns</button>
       </div>
       <article data-step="1">
         <div class="num">first,</div>
@@ -770,6 +813,11 @@
         <div class="num">finally,</div>
         <h3>It answers like it works there.</h3>
         <p>Short and sourced. Not sure? It says so and hands over your number.</p>
+      </article>
+      <article data-step="4">
+        <div class="num">and every day after,</div>
+        <h3>It learns from you.</h3>
+        <p>Questions it can't answer land in your Back office. Reply once, in one line, and the next customer gets your answer.</p>
       </article>
     </div>
   </section>
@@ -1146,17 +1194,17 @@ if (!calm) setInterval(() => {
 let countTimer = null;
 function showStep(n) {
   stage.className = "stage s" + n;
-  mood(mini, n === 1 ? "thinking" : n === 3 ? "happy" : null);
+  mood(mini, n === 1 ? "thinking" : n >= 3 ? "happy" : null);
   clearInterval(countTimer);
   if (n === 1) { let c = 0; countTimer = setInterval(() => { c = Math.min(c + 3, 42); counter.textContent = `Reading pages… ${c}`; }, 40); }
 }
-// one loop per business: reading 2.6 s, PDF 2.6 s, answer 4.8 s (10 s), six businesses in a minute
-const STEP_MS = { 1: 2600, 2: 2600, 3: 4800 };
+// one loop per business: reading 2.6 s, PDF 2.6 s, answer 4.8 s, learning 6.8 s
+const STEP_MS = { 1: 2600, 2: 2600, 3: 4800, 4: 6800 };
 const narrow = matchMedia("(max-width:960px)");   // stacked layout: steps follow the demo instead of the scroll
 let storyN = 0, storyFirst = true, storyTimer = null;
 function storyTick() {
   if (!storyVisible || document.hidden) { storyTimer = setTimeout(storyTick, 600); return; }   // wait until it is seen
-  storyN = storyN % 3 + 1;
+  storyN = storyN % 4 + 1;
   if (storyN === 1 && !storyFirst) nextStory();
   storyFirst = false;
   showStep(storyN);
@@ -1208,6 +1256,19 @@ plats.addEventListener("click", e => {
 });
 
 const tabs = [...document.querySelectorAll(".tabs [role=tab]")];
+$("devToggle").onclick = () => { const open = $("p2").hidden; $("p2").hidden = !open; $("devToggle").setAttribute("aria-expanded", String(open)); };
+/* red number on Back office when customer questions are waiting for the owner */
+async function refreshBadge() {
+  const b = $("inboxBadge"); b.hidden = true;
+  if (!current || !current.token) return;
+  try {
+    const r = await fetch(`/office/${current.sid}`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: current.token, action: "load" }) });
+    if (!r.ok) return;
+    const n = ((await r.json()).inbox || []).length;
+    b.textContent = n; b.hidden = !n; b.setAttribute("aria-label", `${n} waiting`);
+  } catch (e) {}
+}
 function openTab(t) {
   tabs.forEach(x => {
     const on = x === t;
@@ -1218,6 +1279,7 @@ function openTab(t) {
   if (t.id === "t3" && !fr.getAttribute("src") && fr.dataset.src) fr.src = fr.dataset.src;
   const of = $("office");
   if (t.id === "t4" && of.dataset.src) of.src = of.dataset.src + "&t=" + Date.now();  // always fresh
+  if (t.id === "t4") setTimeout(refreshBadge, 1500);
 }
 tabs.forEach(t => {
   t.addEventListener("click", () => openTab(t));
@@ -1326,6 +1388,8 @@ function showInstall(sid, info, name, token) {
   plats.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false"));
   $("howto").textContent = "Pick your site builder for the exact steps.";
   openTab(tabs[0]);
+  $("p2").hidden = true; $("devToggle").setAttribute("aria-expanded", "false");
+  refreshBadge();
 
   const card = $("install"); card.classList.remove("on"); void card.offsetWidth; card.classList.add("on");
   setTimeout(() => {

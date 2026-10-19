@@ -73,7 +73,13 @@
   .welcome{background:var(--brass-soft);border-radius:14px;padding:10px 14px;margin:0 0 18px;font-size:15px}
   .msg{max-width:520px;margin:18vh auto 0;text-align:center;padding:0 24px}
   .msg a{color:var(--ink)}
-  @media (max-width:620px){.grid2{grid-template-columns:1fr}}
+  .week{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0 6px}
+  .week div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px}
+  .week b{display:block;font-size:28px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+  .week span{font-size:13px;color:var(--muted)}
+  .week .warn b{color:#B4232F}
+  .week-note{font-size:12.5px;color:var(--muted);margin:0 0 6px}
+  @media (max-width:620px){.grid2{grid-template-columns:1fr}.week{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -87,6 +93,14 @@
   <h1 id="title">Teach your front desk.</h1>
   <p class="lead">Anything you write here beats the website. Your assistant uses it right away.</p>
   <p class="welcome" id="welcome" hidden>Welcome back. Your owner link worked: this browser can now manage this assistant.</p>
+
+  <div class="week" id="week" aria-label="Last 7 days">
+    <div><b id="wQ">0</b><span>questions, last 7 days</span></div>
+    <div><b id="wSelf">0</b><span>answered by itself</span></div>
+    <div id="wOwnerBox"><b id="wOwner">0</b><span>sent to you</span></div>
+    <div><b id="wRate">–</b><span>handled without you</span></div>
+  </div>
+  <p class="week-note">Counts only. Chats aren't saved.</p>
 
   <section aria-labelledby="h-inbox">
     <div class="sh"><h2 id="h-inbox">Questions we couldn't answer</h2><span class="count zero" id="inboxCount">0</span></div>
@@ -148,6 +162,11 @@ const setCount = (id, n) => { const c = $(id); c.textContent = n; c.classList.to
 
 function render(st) {
   $("title").textContent = st.name ? `Teach ${st.name}'s front desk.` : "Teach your front desk.";
+
+  const w = st.week || { q: 0, self: 0, owner: 0 };
+  $("wQ").textContent = w.q; $("wSelf").textContent = w.self; $("wOwner").textContent = w.owner;
+  $("wRate").textContent = w.q ? Math.round(100 * w.self / w.q) + "%" : "–";
+  $("wOwnerBox").classList.toggle("warn", st.inbox.length > 0);
 
   const inbox = $("inbox"); inbox.textContent = "";
   setCount("inboxCount", st.inbox.length);

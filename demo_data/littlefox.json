@@ -1,0 +1,33 @@
+{
+  "site": "https://say2.onrender.com/static/demo/fox/index.html",
+  "name": "Little Fox Coffee",
+  "description": "Little Fox is a coffee cart in Riverton serving espresso drinks at Riverside Park and the Saturday farmers market.",
+  "logo": null,
+  "actions": [
+    {
+      "url": "https://say2.onrender.com/static/demo/fox/events.html",
+      "text": "Book the cart",
+      "kind": "book"
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://say2.onrender.com/static/demo/fox/index.html",
+      "title": "Little Fox Coffee | Coffee cart in Riverton",
+      "text": "Little Fox Coffee | Coffee cart in Riverton Little cart, big coffee. Little Fox is a coffee cart run by two friends. We pull espresso from a cart with a red awning. Where to find us Monday to Wednesday Riverside Park, north entrance, 7 to 11 am Saturday Riverton Farmers Market, 8 am to 1 pm We post changes and rain closures on Instagram: @littlefoxcoffee . Menu Drip coffee $3 Latte $4.50 Cold brew $4 Hot chocolate $3 Oat milk is the only milk alternative we carry, no extra charge. Say hi Email hey@littlefox.example."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/fox/events.html",
+      "title": "Book the cart | Little Fox Coffee",
+      "text": "Book the cart | Little Fox Coffee Book the cart We bring the cart to weddings, offices and school events, usually on Thursdays and Fridays. $300 covers up to 75 drinks and two hours. Each extra drink is $3. Email hey@littlefox.example with your date, place and number of guests."
+    }
+  ],
+  "tone": "friendly",
+  "effects": true,
+  "type": "food",
+  "brand": "#C2551F",
+  "theme": "auto",
+  "effect": {
+    "motion": "twinkle"
+  }
+}

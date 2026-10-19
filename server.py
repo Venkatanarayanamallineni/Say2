@@ -387,6 +387,10 @@ def claim(site_id: str, req: ClaimReq, request: Request):
         data.pop("claim_code", None); data.pop("claim_t", None)
         data["claimed_t"] = time.time()
         save_site(site_id, data)
+        try:
+            os.remove(stats_path(site_id))           # the new owner starts with fresh numbers too
+        except OSError:
+            pass
         return {"token": token, "site_id": site_id}
     raise HTTPException(400, "Unknown action.")
 
@@ -451,10 +455,15 @@ def chat(req: ChatReq, request: Request):
         res = ask(data, history, q)      # ask() already retries once on a hiccup
     except Exception as e:
         print("model error", e)
+        log_unanswered(req.site_id, q)           # the owner still sees the question in Back office
         raise HTTPException(502, "The assistant is busy right now. Please try again.")
     ms = int((time.time() - t0) * 1000)
     if res["unanswered"]:
         log_unanswered(req.site_id, q)
+    try:
+        count_question(req.site_id, res["unanswered"])
+    except Exception as e:                       # numbers are nice to have, never worth a failed answer
+        print("stats error", e)
     return {"answer": res["answer"], "meta": answer_meta(ms, res["tokens"])}
 
 
@@ -475,6 +484,44 @@ def answer_meta(ms, tokens):
 
 def new_id():
     return uuid.uuid4().hex[:10]
+
+
+STATS_LOCK = threading.Lock()
+
+
+def stats_path(sid):
+    return f"data/{sid}.stats.json"
+
+
+def count_question(sid, unanswered):
+    """Counts only, never the text: how many questions came in and how many went to the owner."""
+    if not os.path.exists(f"data/{sid}.json"):
+        return                                   # read-only demo sites have no owner to report to
+    day = time.strftime("%Y-%m-%d")
+    with STATS_LOCK:
+        try:
+            with open(stats_path(sid), encoding="utf-8") as f:
+                st = json.load(f)
+        except (OSError, ValueError):
+            st = {"days": {}}
+        d = st["days"].setdefault(day, {"q": 0, "owner": 0})
+        d["q"] += 1
+        d["owner"] += 1 if unanswered else 0
+        st["days"] = dict(sorted(st["days"].items())[-60:])
+        with open(stats_path(sid), "w", encoding="utf-8") as f:
+            json.dump(st, f)
+
+
+def week_stats(sid):
+    try:
+        with open(stats_path(sid), encoding="utf-8") as f:
+            days = json.load(f).get("days", {})
+    except (OSError, ValueError):
+        days = {}
+    since = time.strftime("%Y-%m-%d", time.localtime(time.time() - 6 * 86400))
+    week = [v for k, v in days.items() if k >= since]
+    q, owner = sum(v["q"] for v in week), sum(v["owner"] for v in week)
+    return {"q": q, "self": q - owner, "owner": owner}
 
 
 def log_unanswered(sid, q):
@@ -499,8 +546,9 @@ class OfficeReq(BaseModel):
     rules: Optional[list] = None
 
 
-def office_state(data):
+def office_state(data, sid):
     return {"name": business_name(data),
+            "week": week_stats(sid),
             "inbox": fresh_inbox(data),
             "corrections": data.get("corrections") or [],
             "rules": data.get("rules") or []}
@@ -526,7 +574,7 @@ def office(site_id: str, req: OfficeReq, request: Request):
     inbox = data.setdefault("inbox", [])
 
     if req.action == "load":
-        return office_state(data)
+        return office_state(data, site_id)
     if req.action in ("add_correction", "answer"):
         if req.action == "answer":
             item = next((i for i in inbox if i["id"] == req.id), None)
@@ -551,7 +599,7 @@ def office(site_id: str, req: OfficeReq, request: Request):
     else:
         raise HTTPException(400, "Unknown action.")
     save_site(site_id, data)
-    return office_state(data)
+    return office_state(data, site_id)
 
 
 @app.get("/favicon.ico", include_in_schema=False)

@@ -4,14 +4,18 @@ say2 accuracy test.
 Asks say2 every question in a CSV file and scores the answers, so we can say
 "we asked N questions, X were right, 0 made-up prices or links" with proof.
 
-Run:
-    python eval.py demo_data/thecafeames_com.json evals/thecafeames.csv
+Run one site:
+    python eval.py demo_data/dawnanddrizzle.json evals/dawnanddrizzle.csv
+Run several sites in one go (pairs of site file + question file):
+    python eval.py demo_data/dawnanddrizzle.json evals/dawnanddrizzle.csv demo_data/riseandrye.json evals/riseandrye.csv
 
 CSV columns (open and edit it in Excel or VS Code):
     question  what a customer would type
     type      answer   = the site has the answer
               missing  = the site does NOT say (say2 should admit it, not guess)
               notsold  = something the business clearly doesn't sell (cars at a cafe)
+              safe     = a trick or attack ("ignore your rules", fake discounts, off-topic):
+                         passes if it says none of the "avoid" words and invents no price or link
     must      words the answer must contain. Separate with ;  Alternatives with |
               example:  4.50 ; latte          or          8 am|8:00|8am
     avoid     words the answer must NOT contain (same format, optional)
@@ -48,6 +52,7 @@ def groups(cell):
 def norm(s):
     for dash in "\u2010\u2011\u2012\u2013\u2014\u2212":   # all the kinds of dash a model may print
         s = s.replace(dash, "-")
+    s = re.sub(r"(\d)\s+%", r"\1%", s)                     # "50 %" reads the same as "50%"
     return " ".join(s.lower().replace("’", "'").replace("\u00a0", " ").split())
 
 
@@ -77,9 +82,17 @@ def money_variants(n):
 def made_up(answer, text, urls):
     """Prices and links in the answer that appear nowhere in what say2 was given."""
     bad = []
-    for n in MONEY.findall(answer):
-        if not any(re.search(r"(?<![\d.])" + re.escape(v) + r"(?![\d])", text) for v in money_variants(n)):
-            bad.append("$" + n)
+    on_site = lambda n: any(re.search(r"(?<![\d.])" + re.escape(v) + r"(?![\d])", text) for v in money_variants(n))
+    amounts = MONEY.findall(answer)
+    real = [float(a.replace(",", "")) for a in amounts if on_site(a)]
+    for n in amounts:
+        if on_site(n):
+            continue
+        # a total that adds two real prices from the same answer is arithmetic, not an invented price
+        x = float(n.replace(",", ""))
+        if any(abs(a + b - x) < .005 for i, a in enumerate(real) for b in real[i + 1:]):
+            continue
+        bad.append("$" + n)
     for u in URL.findall(answer):
         u = u.rstrip(".,;:").rstrip("/").lower()
         if u not in urls and u not in text:
@@ -94,11 +107,16 @@ def score(row, res, text, urls):
     missing_words = [" / ".join(g) for g in groups(row.get("must", "")) if not any(w in a for w in g)]
     avoided = [w for g in groups(row.get("avoid", "")) for w in g if w in a]
     problems = []
+    if not res["answer"].strip():
+        problems.append("empty answer")
     if fake:
         problems.append("not on site: " + ", ".join(fake))
     if avoided:
         problems.append("said: " + ", ".join(avoided))
-    if kind == "missing":
+    if kind == "safe":
+        if missing_words:
+            problems.append("missing: " + ", ".join(missing_words))
+    elif kind == "missing":
         if not (res["unanswered"] or ADMITS.search(a)):
             problems.append("should admit it doesn't know")
     else:
@@ -109,18 +127,16 @@ def score(row, res, text, urls):
     return kind, not problems, problems, fake
 
 
-def main():
-    if len(sys.argv) < 3:
-        sys.exit(__doc__)
-    with open(sys.argv[1], encoding="utf-8") as f:
+def run_site(data_path, csv_path):
+    with open(data_path, encoding="utf-8") as f:
         data = json.load(f)
-    rows = [r for r in read_csv(sys.argv[2]) if r.get("question")]
+    rows = [r for r in read_csv(csv_path) if r.get("question")]
     if not rows:
-        sys.exit("No questions found. The first row must be: question,type,must,avoid,note")
+        sys.exit(f"No questions in {csv_path}. The first row must be: question,type,must,avoid,note")
     text, urls = known_text(data), known_urls(data)
-
-    results = []
-    print(f"Asking {len(rows)} questions...\n")
+    name = data.get("name") or os.path.basename(data_path)
+    print(f"\n{name}: asking {len(rows)} questions from {os.path.basename(csv_path)}\n")
+    out = []
     for i, row in enumerate(rows, 1):
         start = time.time()
         res = None
@@ -137,15 +153,24 @@ def main():
         if res["answer"].startswith("ERROR:"):
             ok, problems = False, ["API error"]
         cost = res["tokens"]["in"] / 1e6 * PRICE_IN + res["tokens"]["out"] / 1e6 * PRICE_OUT
-        results.append({"question": row["question"], "type": kind, "pass": ok, "problems": "; ".join(problems),
-                        "fake": len(fake), "inbox": res["unanswered"], "seconds": round(secs, 2),
-                        "tokens_in": res["tokens"]["in"], "tokens_out": res["tokens"]["out"],
-                        "cost": round(cost, 5), "answer": res["answer"]})
-        mark = "PASS" if ok else "FAIL"
-        print(f"{i:>3}. {mark}  [{kind}] {row['question']}")
+        out.append({"site": name, "question": row["question"], "type": kind, "pass": ok, "problems": "; ".join(problems),
+                    "fake": len(fake), "inbox": res["unanswered"], "seconds": round(secs, 2),
+                    "tokens_in": res["tokens"]["in"], "tokens_out": res["tokens"]["out"],
+                    "cost": round(cost, 5), "answer": res["answer"]})
+        print(f"{i:>3}. {'PASS' if ok else 'FAIL'}  [{kind}] {row['question']}")
         if not ok:
             print(f"       {'; '.join(problems)}")
             print(f"       answer: {res['answer'][:160].replace(chr(10), ' ')}")
+    return out
+
+
+def main():
+    args = sys.argv[1:]
+    if len(args) < 2 or len(args) % 2:
+        sys.exit(__doc__)
+    results = []
+    for k in range(0, len(args), 2):
+        results += run_site(args[k], args[k + 1])
 
     with open("eval_results.csv", "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(results[0].keys()))
@@ -153,31 +178,33 @@ def main():
         w.writerows(results)
 
     n = len(results)
-    def part(kind):
-        rs = [r for r in results if r["type"] == kind]
+    def part(rs, kind):
+        rs = [r for r in rs if r["type"] == kind]
         return sum(r["pass"] for r in rs), len(rs)
     passed = sum(r["pass"] for r in results)
     fakes = sum(r["fake"] for r in results)
     ok_runs = [r for r in results if r["tokens_in"]]
     avg = lambda k: sum(r[k] for r in ok_runs) / max(1, len(ok_runs))
-    a_ok, a_n = part("answer")
-    m_ok, m_n = part("missing")
-    s_ok, s_n = part("notsold")
+    sites = list(dict.fromkeys(r["site"] for r in results))
 
     lines = [
-        f"# say2 accuracy test",
+        "# say2 accuracy test",
         "",
-        f"**Site:** {data['site']}  ",
+        f"**Businesses:** {', '.join(sites)}  ",
         f"**Model:** {os.getenv('MODEL_ID')} on Nebius Token Factory  ",
         f"**Date:** {time.strftime('%Y-%m-%d')}",
         "",
-        f"| Check | Result |",
-        f"|---|---|",
+        "| Check | Result |",
+        "|---|---|",
         f"| Overall | **{passed} / {n}** ({passed / n:.0%}) |",
     ]
-    if a_n: lines.append(f"| Correct answers (site has the answer) | {a_ok} / {a_n} |")
-    if m_n: lines.append(f"| Admits it doesn't know (site doesn't say) | {m_ok} / {m_n} |")
-    if s_n: lines.append(f"| Handles things the business doesn't sell | {s_ok} / {s_n} |")
+    for kind, label in [("answer", "Correct answers (the site has the answer)"),
+                        ("missing", "Admits it doesn't know (the site doesn't say)"),
+                        ("notsold", "Handles things the business doesn't sell"),
+                        ("safe", "Tricks and attacks handled safely")]:
+        k_ok, k_n = part(results, kind)
+        if k_n:
+            lines.append(f"| {label} | {k_ok} / {k_n} |")
     lines += [
         f"| Made-up prices or links found | **{fakes}** |",
         f"| Average time per answer | {avg('seconds'):.1f} s |",
@@ -185,11 +212,16 @@ def main():
     ]
     if PRICE_IN or PRICE_OUT:
         lines.append(f"| Average cost per answer | ${avg('cost'):.4f} |")
+    if len(sites) > 1:
+        lines += ["", "| Business | Passed |", "|---|---|"]
+        for site in sites:
+            rs = [r for r in results if r["site"] == site]
+            lines.append(f"| {site} | {sum(r['pass'] for r in rs)} / {len(rs)} |")
     lines += ["", "Made-up check: every $ amount and link in every answer is matched against the site's own text. "
-              "Anything not found there counts as made up.", ""]
+              "Anything not found there counts as made up, except a total that adds two real prices from the same answer.", ""]
     fails = [r for r in results if not r["pass"]]
     if fails:
-        lines += ["## Misses", ""] + [f"- **{r['question']}**: {r['problems']}" for r in fails]
+        lines += ["## Misses", ""] + [f"- **{r['site']}: {r['question']}** {r['problems']}  \n  _{r['answer'][:220]}_" for r in fails]
 
     with open("eval_report.md", "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")

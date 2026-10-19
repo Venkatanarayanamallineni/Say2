@@ -1,0 +1,42 @@
+{
+  "site": "https://say2.onrender.com/static/demo/rye/index.html",
+  "name": "Rise & Rye Bakery",
+  "description": "Rise & Rye is a small-batch bakery on Mill Road in Riverton: sourdough, rye, pastries and custom cakes, baked before sunrise.",
+  "logo": null,
+  "actions": [],
+  "pages": [
+    {
+      "url": "https://say2.onrender.com/static/demo/rye/index.html",
+      "title": "Rise & Rye Bakery | Sourdough, rye and custom cakes in Riverton",
+      "text": "Rise & Rye Bakery | Sourdough, rye and custom cakes in Riverton Bread worth waking up for. Rise & Rye is a small-batch bakery at 212 Mill Road, Riverton. We bake sourdough, rye, pastries and custom cakes every morning before sunrise. Hours Monday Closed Tuesday to Friday 7 am to 3 pm Saturday 7 am to 2 pm Sunday 8 am to noon We close early when we sell out, which happens most Saturdays around 1 pm. Holidays Closed Thanksgiving Day. The day before Thanksgiving we open 6 am to noon for pie pickup only. Closed December 24 to 26. Prices Our full price list, including seasonal items: Fall 2026 price list (PDF) . Thanksgiving pies Pre-order pies by November 20. Pumpkin pie $28, apple crumble pie $30, maple pecan pie $32 (contains nuts). Order by phone at (515) 555-0172 or email orders@riseandrye.example. Find us 212 Mill Road, Riverton. Phone (515) 555-0172. Email orders@riseandrye.example."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/rye/rise-and-rye-price-list-fall-2026.pdf",
+      "title": "PDF: rise-and-rye-price-list-fall-2026.pdf",
+      "text": "RISE & RYE - PRICE LIST FALL 2026 212 Mill Rd, Riverton (515) 555-0172 prices subject to change * = seasonal (Oct-Nov only) ea = each 1/2 dz = half dozen dz = dozen BREAD (loaves) Country sourdough $9 Seeded rye $10 Rosemary focaccia (half tray) $8 Sandwich white $7 Pumpkin rye * $11 Cranberry walnut * $11.50 Day-old loaves 1/2 price PASTRY Butter croissant $3.75 ea / $21 1/2 dz Almond croissant $4.50 ea Pain au chocolat $4.25 ea / $24 1/2 dz Morning bun (orange, cinnamon) $4 ea Apple cider donut * $2.50 ea / $27 dz Pumpkin scone * $3.75 ea COOKIES & BARS Brown butter choc chip $3 ea / $16 1/2 dz / $30 dz Oatmeal raisin $2.75 ea Lemon bar $3.50 ea PIES (whole, 9in) pre-order by 11/20 Pumpkin $28 Apple crumble $30 Maple pecan (NUTS) $32 DRINKS Drip coffee 12oz $2.75 Hot cider * $3.50 NOTES Sliced bread +$0.50 Box of 12 assorted pastry $40 No substitutions on boxes Demo business made for the say2 hackathon project. Not a real business."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/rye/cakes.html",
+      "title": "Custom cakes | Rise & Rye Bakery",
+      "text": "Custom cakes | Rise & Rye Bakery Custom cakes All custom cakes need at least 72 hours notice, and a 50% deposit when you order. Order by phone or in person, not online. 6 inch round, serves 8 $42 8 inch round, serves 14 $58 10 inch round, serves 24 $78 Half sheet, serves 40 $110 Flavors Vanilla bean, chocolate, lemon, carrot (contains walnuts), and honey rye. Frostings Swiss buttercream, cream cheese, or chocolate ganache. Extras Simple writing is free. Fresh flowers add $12. We don't do photo cakes, fondant figures or tiered wedding cakes. Changes and cancellations Changes are free up to 48 hours before pickup. Cancel more than 48 hours ahead and we refund your deposit. Later than that, the deposit is kept."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/rye/wholesale.html",
+      "title": "Wholesale | Rise & Rye Bakery",
+      "text": "Wholesale | Rise & Rye Bakery Wholesale for cafés and restaurants We supply bread and pastries to cafés and restaurants in Riverton. Minimum order: 3 dozen items or 10 loaves per delivery. Orders by 2 pm for delivery the next morning. Free delivery before 6 am inside Riverton city limits. Wholesale prices are 30% below our shop prices. Invoices are due in 15 days. Email wholesale@riseandrye.example with your business name and what you need."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/rye/faq.html",
+      "title": "Good to know | Rise & Rye Bakery",
+      "text": "Good to know | Rise & Rye Bakery Good to know Allergies Everything is baked in one kitchen that uses wheat, rye, eggs, dairy, sesame and tree nuts. We can't promise any item is free of allergens. Gluten-free We don't make gluten-free bread or pastries. Our flour is in the air all day. Vegan Our country sourdough, seeded rye and rosemary focaccia are vegan. The pastries are not. Day-old bread Yesterday's loaves are half price, on the rack by the door, until they're gone. Paying We take cash and all major cards. No checks. Parking Free parking in the small lot behind the bakery, entrance on Mill Lane. Seating We're a takeout bakery with one bench outside. No indoor seating. Jobs We hire early-morning bakers each fall. Email jobs@riseandrye.example."
+    }
+  ],
+  "tone": "friendly",
+  "effects": true,
+  "type": "food",
+  "brand": "#8A4B1F",
+  "theme": "auto",
+  "effect": {
+    "motion": "twinkle"
+  }
+}
