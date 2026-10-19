@@ -80,6 +80,7 @@ if (!site || !/^[a-z0-9_\-]{1,100}$/.test(site)) {
     document.getElementById("brand").textContent = name;
     document.getElementById("hname").textContent = name;
     document.title = `${name} · Preview`;
+    document.getElementById("noteText").textContent = `Preview by say2. Not an official ${name} channel until they add it to their own site.`;
     if (d.brand) document.documentElement.style.setProperty("--brand", d.brand);
   }).catch(() => {
     document.getElementById("noteText").textContent = "We couldn't find this assistant. It may need to be set up again.";

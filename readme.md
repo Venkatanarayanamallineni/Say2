@@ -6,7 +6,7 @@
 
 **Your website, now taking questions.**
 
-say2 gives any small business website a front desk. Paste your link, and it reads every page and every PDF on your site: menus, price lists, schedules, the fine print. Then it adds a small chat bubble to your site that answers customers in your voice, any time of day, with a link to where each answer came from.
+say2 gives any small business website a front desk. Paste your link, and it reads your site, up to 50 pages plus the PDFs they link to: menus, price lists, schedules, the fine print. Then it adds a small chat bubble to your site that answers customers in your voice, any time of day, with a link to where each answer came from.
 
 **[Try it live →](https://say2.onrender.com)** &nbsp;·&nbsp; **[See it on a demo café →](https://say2.onrender.com/static/demo/dawn/index.html)** &nbsp;·&nbsp; Demo video: _add link_
 

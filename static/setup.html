@@ -7,11 +7,11 @@
 <link rel="icon" href="/static/brand/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/static/brand/say2_icon_32.png">
 <link rel="apple-touch-icon" href="/static/brand/say2_icon_180.png">
-<meta name="description" content="Paste a link. say2 reads every page and PDF, then gives your website a front desk that answers in your voice, with sources.">
+<meta name="description" content="Paste a link. say2 reads your pages and PDFs, then gives your website a front desk that answers in your voice, with sources.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="say2">
 <meta property="og:title" content="say2: your website, now taking questions">
-<meta property="og:description" content="Paste a link. say2 reads every page and PDF, then answers your customers in your voice, with sources. Built on NVIDIA Nemotron and Nebius.">
+<meta property="og:description" content="Paste a link. say2 reads your pages and PDFs, then answers your customers in your voice, with sources. Built on NVIDIA Nemotron and Nebius.">
 <meta property="og:url" content="https://say2.onrender.com/">
 <meta property="og:image" content="https://say2.onrender.com/static/brand/og.png">
 <meta property="og:image:width" content="1200">
@@ -552,7 +552,7 @@
   <section class="hero">
     <div>
       <h1 class="rise" aria-label="Your website, now taking questions."><span class="l1">Your <span id="word">café's</span></span> website, now taking questions.</h1>
-      <p class="lead rise" style="--d:2">Paste a link. We read every page, every PDF, every bit of fine print. Your customers get answers in seconds, in your voice, with sources.</p>
+      <p class="lead rise" style="--d:2">Paste a link. We read your pages, your PDFs, every bit of fine print. Your customers get answers in seconds, in your voice, with sources.</p>
 
       <form id="f" class="rise" style="--d:3" novalidate>
         <div class="door">
@@ -776,7 +776,7 @@
   <section class="feats">
     <h2>Small bubble. Serious job description.</h2>
     <div class="grid">
-      <div class="card"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 13l2 2 4-4"/></svg></span><b>Every answer, sourced</b><p>It answers from your own pages and links to where it found each answer. Not sure? It says so.</p></div>
+      <div class="card"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 13l2 2 4-4"/></svg></span><b>Answers with sources</b><p>It answers from your own pages and links to where it found each answer. Not sure? It says so.</p></div>
       <div class="card"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="9" cy="9.5" r="1.2"/><circle cx="14.5" cy="8.5" r="1.2"/><circle cx="16" cy="13.5" r="1.2"/></svg></span><b>Dressed in your brand</b><p>Your logo, your color, a small signature that hints at what you do.</p></div>
       <div class="card"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v10H10l-5 4v-4H4z"/></svg></span><b>Speaks fluent you</b><p>Polished, warm or witty. It always says "we", never "the website".</p></div>
       <div class="card"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 6l-3 12"/></svg></span><b>Installs in one line</b><p>Step-by-step for Wix, Squarespace, WordPress, Shopify and Webflow, or send it to your developer.</p></div>
@@ -1303,7 +1303,7 @@ $("f").addEventListener("submit", async e => {
       if (st.actions > 0 && !bookLine) { bookLine = true; line("FOUND A BOOKING LINK", "OK"); }
       if (st.stage === "voice" && !voice) { if (pages) { pages.firstChild.textContent = "READING PAGES"; finish(pages, String(st.pages)); } voice = line("LEARNING YOUR VOICE", "", "wait"); }
       if (st.status === "error") { finish(open, "--"); finish(pages, "--"); finish(voice, "--"); return fail(st.error); }
-      if (st.status === "done") { finish(open, "OK"); finish(pages, String(st.pages)); finish(voice, "OK"); result = st.result; token = st.result.edit_token; break; }
+      if (st.status === "done") { finish(open, "OK"); finish(pages, String(st.pages)); finish(voice, "OK"); if (st.big) line("BIG SITE", "SMART PICK ON"); result = st.result; token = st.result.edit_token; break; }
       if (Date.now() - started > 300000) return fail("This site is taking too long to read. Try again in a bit.");
     }
     saveToken(result.site_id, token);

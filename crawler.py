@@ -1,5 +1,6 @@
 import io, ipaddress, json, os, re, socket, sys
 from urllib.parse import urljoin, urlparse
+from urllib.robotparser import RobotFileParser
 import requests
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
@@ -145,10 +146,23 @@ def maybe_action(a, link, actions):
         return actions[link]
 
 
+def robots_for(start_url):
+    """The site's robots.txt rules for us. If there's no robots.txt, everything is allowed."""
+    rp = RobotFileParser()
+    try:
+        p = urlparse(start_url)
+        r = safe_get(f"{p.scheme}://{p.netloc}/robots.txt", timeout=8)
+        rp.parse(r.text.splitlines() if r.status_code == 200 else [])
+    except Exception:
+        rp.parse([])
+    return rp
+
+
 def crawl(start_url, progress=None):
     """progress(event, info) is called as we go, so the setup page can show real steps."""
     say = progress or (lambda event, info: None)
     scope = site_scope(start_url)   # stay inside this one site, even on shared hosts
+    robots = robots_for(start_url)  # we only read what the site allows
     to_visit, seen, pages = [start_url], set(), []
     logo = None
     site_name = None
@@ -160,6 +174,9 @@ def crawl(start_url, progress=None):
         if url in seen:
             continue
         seen.add(url)
+        if not robots.can_fetch("say2Bot", url):
+            say("blocked", {"url": url})
+            continue
         try:
             r = safe_get(url)
         except Exception as e:

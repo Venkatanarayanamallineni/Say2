@@ -66,6 +66,45 @@ SHARED_HOSTS = {"sites.google.com": 2, "wixsite.com": 1, "github.io": 1, "linktr
                 os.getenv("APP_HOST", "say2.onrender.com"): 3, "127.0.0.1": 3, "localhost": 3}
 
 
+# say2 is for small business sites; giant stores would burn through the budget (and usually block bots anyway)
+BIG_SITES = ("amazon.", "walmart.", "ebay.", "target.com", "etsy.com", "aliexpress.", "alibaba.", "bestbuy.", "costco.",
+             "homedepot.", "lowes.", "ikea.", "facebook.", "instagram.", "youtube.", "wikipedia.org", "reddit.", "x.com", "twitter.")
+BIG_SITE_CHARS = 300_000      # more text than this: Smart pick turns on by itself
+SITE_PER_DAY = 300            # answers per assistant per day
+SITE_DAY = defaultdict(int)
+INBOX_DAYS = 30               # unanswered questions are deleted after this
+
+
+def is_big_marketplace(url):
+    host = (urlparse(url).hostname or "").lower()
+    host = host[4:] if host.startswith("www.") else host
+    return any(host.startswith(b) or ("." + b) in ("." + host) for b in BIG_SITES)
+
+
+def site_daily_cap(sid):
+    key = time.strftime("%Y-%m-%d") + ":" + sid
+    if SITE_DAY[key] >= SITE_PER_DAY:
+        raise HTTPException(503, "This assistant has answered a lot today. Please try again tomorrow or contact the business directly.")
+    SITE_DAY[key] += 1
+
+
+def origin_ok(request, data):
+    """The chat only works on the business's own website and on say2's own pages.
+    Stops anyone from putting a business's assistant on a look-alike site."""
+    origin = request.headers.get("origin")
+    if not origin:            # not a browser (tests, server tools): rate limits still apply
+        return True
+    host = (urlparse(origin).hostname or "").lower()
+    own = {(request.url.hostname or "").lower(), os.getenv("APP_HOST", "say2.onrender.com"), "127.0.0.1", "localhost"}
+    site = (urlparse(data.get("site", "")).hostname or "").lower()
+    strip = lambda h: h[4:] if h.startswith("www.") else h
+    return host in own or bool(site and strip(host) == strip(site))
+
+
+def fresh_inbox(data):
+    return [i for i in data.get("inbox") or [] if time.time() - i.get("t", 0) < INBOX_DAYS * 86400]
+
+
 def site_id_from(url):
     p = urlparse(url)
     host = p.netloc.lower()
@@ -252,6 +291,9 @@ def run_setup(job_id, req, url, sid, token):
         data["effect"] = {"motion": style["motion"], "emoji": (req.emoji or "").strip() or style["emoji"]}
         data["edit_hash"] = token_hash(token)
         data["updated"] = int(time.time())
+        if sum(len(p["text"]) for p in data["pages"]) > BIG_SITE_CHARS:
+            data["depth"] = "smart"     # big site: read only the matching pages, so each answer stays cheap
+            job["big"] = True
         save_site(sid, data)
         job.update(status="done", stage="done",
                    result={"site_id": sid, "pages": len(data["pages"]), "logo": data["logo"], "edit_token": token})
@@ -266,6 +308,8 @@ def setup(req: SetupReq, request: Request):
     if not is_public_url(url):
         raise HTTPException(400, "Please enter a public website link (http or https).")
     check_style_fields(req.logo, req.brand, req.emoji, req.tone)
+    if is_big_marketplace(url):
+        raise HTTPException(400, "say2 is built for small business sites. Big marketplaces and social networks aren't supported.")
     sid = site_id_from(url)
 
     # someone already set this site up: only its owner can re-read it
@@ -381,6 +425,9 @@ def chat(req: ChatReq, request: Request):
     if len(q) > MAX_QUESTION_CHARS:
         raise HTTPException(400, "Question is too long. Please shorten it.")
     data = load_site(req.site_id)
+    if not origin_ok(request, data):
+        raise HTTPException(403, "This assistant only works on its own website.")
+    site_daily_cap(req.site_id)
     daily_cap()
     # only allow normal chat turns from the browser (no fake "system" messages)
     history = [{"role": h["role"], "content": h["content"][:2000]}
@@ -389,12 +436,7 @@ def chat(req: ChatReq, request: Request):
                and isinstance(h.get("content"), str)]
     t0 = time.time()
     try:
-        try:
-            res = ask(data, history, q)
-        except Exception as first:          # one quick retry: the model service occasionally drops a request
-            print("chat retry after:", repr(first))
-            time.sleep(0.8)
-            res = ask(data, history, q)
+        res = ask(data, history, q)      # ask() already retries once on a hiccup
     except Exception as e:
         print("model error", e)
         raise HTTPException(502, "The assistant is busy right now. Please try again.")
@@ -428,7 +470,7 @@ def log_unanswered(sid, q):
     data = read_own_site(sid)
     if not data:
         return
-    inbox = data.setdefault("inbox", [])
+    inbox = data["inbox"] = fresh_inbox(data)
     if any(i["q"].strip().lower() == q.strip().lower() for i in inbox):
         return
     inbox.append({"id": new_id(), "q": q[:300], "t": int(time.time())})
@@ -447,7 +489,7 @@ class OfficeReq(BaseModel):
 
 def office_state(data):
     return {"name": business_name(data),
-            "inbox": data.get("inbox") or [],
+            "inbox": fresh_inbox(data),
             "corrections": data.get("corrections") or [],
             "rules": data.get("rules") or []}
 
