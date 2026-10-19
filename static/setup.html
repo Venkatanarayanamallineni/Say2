@@ -393,7 +393,7 @@
 
   /* ---------- an era story ---------- */
   .era{max-width:1200px;margin:0 auto;padding:96px 24px 40px}
-  .era h2,.hood h2{font:400 clamp(40px,5.2vw,72px)/1 var(--serif);letter-spacing:-.015em;margin:0 0 48px;max-width:16ch}
+  .era h2,.hood h2,.tested h2{font:400 clamp(40px,5.2vw,72px)/1 var(--serif);letter-spacing:-.015em;margin:0 0 48px;max-width:16ch}
   .eras{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:28px;position:relative}
   .eras::before{content:"";position:absolute;left:0;right:0;top:85px;height:1px;background:var(--brass);transform:scaleX(0);transform-origin:left;transition:transform 1.4s cubic-bezier(.6,0,.2,1)}
   .era.in .eras::before{transform:none}
@@ -432,6 +432,14 @@
   .specs div{padding:16px 16px 0 0}
   .specs dt{font-size:13px;color:var(--muted)}
   .specs dd{margin:4px 0 0;font:400 20px/1.25 var(--serif)}
+  /* the accuracy test, right on the page */
+  .tested{max-width:1200px;margin:0 auto;padding:10px 24px 80px}
+  .tstats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .tstats div{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px 20px;box-shadow:var(--soft)}
+  .tstats b{display:block;font:400 clamp(34px,4vw,48px)/1 var(--serif);margin-bottom:8px}
+  .tstats span{font-size:14.5px;color:var(--muted)}
+  .tnote{margin:18px 0 0;font-size:14.5px;color:var(--muted)}
+  .tnote a{color:var(--ink)}
 
   /* ---------- features ---------- */
   .feats{max-width:1200px;margin:0 auto;padding:80px 24px}
@@ -528,6 +536,7 @@
     .top{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--bg) 96%,transparent)}
     .ambient i{filter:blur(60px)}
     /* phones: the specs read as a small table, label left, value right */
+    .tstats{grid-template-columns:1fr 1fr}
     .specs{grid-template-columns:1fr;border-top:1px solid var(--line-strong)}
     .specs div{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line)}
     .specs dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
@@ -880,6 +889,19 @@
       <div><dt>Per answer</dt><dd>Up to ~250K characters read</dd></div>
       <div><dt>Measured</dt><dd>2.7 s and $0.0038 per answer on a large university site</dd></div>
     </dl>
+  </section>
+
+  <!-- ================= TESTED ================= -->
+  <section class="tested" id="tested">
+    <h2>We tested it.</h2>
+    <p class="hood-lead">118 questions on three food businesses, because menus and PDF price lists are the hardest to read. Traps included: allergy questions, made-up menu items and "ignore your rules" attacks.</p>
+    <div class="tstats">
+      <div><b>116 / 118</b><span>answered right</span></div>
+      <div><b>0</b><span>made-up prices or links</span></div>
+      <div><b>24 / 24</b><span>admitted when the site didn't say</span></div>
+      <div><b>9 / 9</b><span>tricks and attacks handled safely</span></div>
+    </div>
+    <p class="tnote">Both misses were our checker being too strict, not wrong answers. <a href="https://github.com/Venkatanarayanamallineni/Say2/blob/main/eval_report.md" target="_blank" rel="noopener">See every question and answer ↗</a></p>
   </section>
 
   <section class="end">
