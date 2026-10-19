@@ -388,13 +388,9 @@
   .pipe{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;position:relative;counter-reset:p}
   .pipe::before{content:"";position:absolute;left:4%;right:4%;top:22px;height:1px;background:repeating-linear-gradient(90deg,var(--brass) 0 4px,transparent 4px 10px);transform:scaleX(0);transform-origin:left;transition:transform 1.6s cubic-bezier(.6,0,.2,1)}
   .hood.in .pipe::before{transform:none}
-  .pulse{position:absolute;left:4%;right:4%;top:18px;height:9px;container-type:inline-size;pointer-events:none;z-index:3;opacity:0;transition:opacity .6s 1.6s}
-  .hood.in .pulse{opacity:1}
-  .pulse::before{content:"";position:absolute;left:0;top:0;width:9px;height:9px;border-radius:50%;background:var(--brass);
-    box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 22%,transparent),0 0 14px 2px color-mix(in srgb,var(--brass) 55%,transparent);
-    animation:travel 4.2s cubic-bezier(.55,0,.45,1) infinite}
-  @keyframes travel{0%{transform:translateX(0);opacity:0}8%{opacity:1}88%{opacity:1}100%{transform:translateX(calc(100cqw - 9px));opacity:0}}
-  .swipe-dots{display:none}
+  .pulse{position:absolute;left:0;top:18px;width:9px;height:9px;border-radius:50%;z-index:3;pointer-events:none;opacity:0;background:var(--brass);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 22%,transparent),0 0 14px 2px color-mix(in srgb,var(--brass) 55%,transparent)}
+  .swipe-dots,.stepbar{display:none}
   .pipe li{counter-increment:p;position:relative;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:58px 18px 20px;box-shadow:var(--soft)}
   .pipe li::before{content:counter(p);position:absolute;top:8px;left:18px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:italic 400 18px/1 var(--serif);background:var(--paper-2);border:1px solid var(--brass);color:var(--ink)}
   .pipe b{display:block;font:400 23px/1.1 var(--serif);margin-bottom:6px}
@@ -472,9 +468,17 @@
     .stage-hero .seal{right:-8px;width:66px;font-size:34px}
     .story{grid-template-columns:1fr;gap:0}
     /* phones and tablets: the demo plays, the three steps sit right under it and light up in time with it */
-    .stage-wrap{position:static;height:auto;padding:0 0 10px}
-    .beats article{min-height:0;padding:18px 0;border-top:1px solid var(--line)}
-    .beats h3{font-size:30px;max-width:none;opacity:.35} .beats p{font-size:16.5px;opacity:.35}
+    .stage-wrap{position:static;height:auto;padding:0 0 4px}
+    .beats{display:grid}
+    .stepbar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 6px}
+    .stepbar button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:4px 0;font-size:13px;color:var(--muted);transition:color .3s}
+    .stepbar button.cur{color:var(--ink)}
+    .stepbar .tr{height:3px;border-radius:2px;background:var(--track);overflow:hidden}
+    .stepbar .tr i{display:block;height:100%;background:var(--ink);transform:scaleX(0);transform-origin:left}
+    .beats article{grid-area:2/1;min-height:0;justify-content:flex-start;padding:8px 0 0;opacity:0;transition:opacity .45s;pointer-events:none}
+    .beats article.on{opacity:1;pointer-events:auto}
+    .beats .num{display:none}
+    .beats h3{font-size:30px;max-width:none;opacity:1} .beats p{font-size:16.5px;opacity:1}
     .grid{grid-template-columns:1fr 1fr}
     /* timeline and pipeline: swipe sideways, the next card peeks in, dots show where you are */
     .eras,.pipe{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
@@ -489,14 +493,18 @@
     .swipe-dots i.on{width:18px;background:var(--ink)}
     .top{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--bg) 96%,transparent)}
     .ambient i{filter:blur(60px)}
-    .specs{grid-template-columns:1fr 1fr}
+    /* phones: the specs read as a small table, label left, value right */
+    .specs{grid-template-columns:1fr;border-top:1px solid var(--line-strong)}
+    .specs div{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line)}
+    .specs dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
+    .specs dd{margin:0;font-size:18px;line-height:1.3}
     .row2{grid-template-columns:1fr}
   }
   @media (max-width:560px){ .tabs .full{display:none} .tabs .short{display:inline} h1{font-size:46px} .door button{padding:0 16px;font-size:15px} .door input{padding:12px 12px;font-size:16px} .grid{grid-template-columns:1fr} .bar nav a.opt{display:none} .hchat{width:74%} .hrows{max-width:100%} .win{aspect-ratio:4/3.9} .under .proof{font-size:13px}
     /* story on small phones: one layer per step, text kept clear of the sticky mock */
     .stage.s3 .pdf{opacity:0;transform:perspective(700px) rotateY(-30deg)}
     .mchat{width:80%;right:4%}
-    .beats article{padding:16px 0} }
+    .beats h3{font-size:27px} }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
     .eras li{opacity:1;transform:none}.eras::before,.pipe::before{transform:none}
@@ -743,6 +751,11 @@
     </div>
 
     <div class="beats">
+      <div class="stepbar" id="stepbar">
+        <button data-s="1"><span class="tr"><i></i></span>Reads your site</button>
+        <button data-s="2"><span class="tr"><i></i></span>Even the PDFs</button>
+        <button data-s="3"><span class="tr"><i></i></span>Answers</button>
+      </div>
       <article data-step="1">
         <div class="num">first,</div>
         <h3>It reads everything. Even the footer.</h3>
@@ -858,6 +871,46 @@ fetch("/config").then(r => r.json()).then(c => showRepo(c.repo)).catch(() => {})
 const reveal = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); reveal.unobserve(e.target); } }), { threshold: .12 });
 ["era", "hood"].forEach(id => reveal.observe(document.getElementById(id)));
 $("sample").href = "/static/demo/dawn/index.html";
+/* Under the hood, desktop: a gold light hops 1 → 5 and each number glows as it arrives, like a chain of LEDs */
+(() => {
+  const pipe = document.querySelector(".pipe"), dot = pipe.querySelector(".pulse");
+  const lis = [...pipe.querySelectorAll(":scope > li")];
+  if (!dot.animate || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const wide = matchMedia("(min-width:961px)");
+  let anims = [], started = false;
+  const HOP = 1150, LEAVE = 120, N = lis.length, D = (N - 1) * HOP + 1500, ease = "cubic-bezier(.45,0,.35,1)";
+  function run() {
+    anims.forEach(a => a.cancel()); anims = [];
+    if (!wide.matches || !started) return;
+    const pr = pipe.getBoundingClientRect(), brass = getComputedStyle(document.documentElement).getPropertyValue("--brass").trim();
+    const cx = lis.map(li => li.getBoundingClientRect().left - pr.left + 33);       // number circle centres
+    const at = i => Math.max(i * HOP, 30) / D;                                       // when the light reaches circle i
+    // the light only shows while it travels: it leaves a circle's edge, glides, and melts into the next one
+    const move = [{ offset: 0, transform: `translateX(${cx[0] + 14}px)` }], fade = [{ offset: 0, opacity: 0 }];
+    for (let i = 0; i < N - 1; i++) {
+      const s = (i * HOP + LEAVE + 30) / D, e = at(i + 1), from = cx[i] + 14, to = cx[i + 1] - 23, span = e - s;
+      move.push({ offset: s, transform: `translateX(${from}px)`, easing: ease }, { offset: e, transform: `translateX(${to}px)`, easing: "step-end" });
+      fade.push({ offset: s, opacity: 0 }, { offset: s + span * .18, opacity: 1 }, { offset: e - span * .12, opacity: 1 }, { offset: e, opacity: 0 });
+    }
+    move.push({ offset: 1, transform: `translateX(${cx[0] + 14}px)` }); fade.push({ offset: 1, opacity: 0 });
+    anims.push(dot.animate(move, { duration: D, iterations: Infinity }), dot.animate(fade, { duration: D, iterations: Infinity }));
+    // each number warms up softly as the light arrives, then settles back
+    lis.forEach((li, i) => {
+      const base = getComputedStyle(li, "::before"), a = at(i);
+      const off = { backgroundColor: base.backgroundColor, boxShadow: "0 0 0 0 rgba(0,0,0,0)" };
+      const on = { backgroundColor: li.classList.contains("core") ? base.backgroundColor : `color-mix(in srgb, ${brass} 42%, ${base.backgroundColor})`,
+                   boxShadow: `0 0 0 4px color-mix(in srgb, ${brass} 22%, transparent), 0 0 18px 3px color-mix(in srgb, ${brass} 55%, transparent)` };
+      const k = [{ offset: 0, ...off }];
+      if (a > .04) k.push({ offset: a - .03, ...off });
+      k.push({ offset: a + .025, ...on, easing: "ease-out" }, { offset: Math.min(a + .16, .99), ...off }, { offset: 1, ...off });
+      anims.push(li.animate(k, { duration: D, iterations: Infinity, pseudoElement: "::before" }));
+    });
+  }
+  new IntersectionObserver(([e], io) => { if (e.isIntersecting) { started = true; setTimeout(run, 1200); io.disconnect(); } }, { threshold: .3 }).observe(pipe);
+  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(run, 200); });
+  wide.addEventListener("change", run);
+  addEventListener("fa-theme", () => setTimeout(run, 50));   // colours follow light / dark
+})();
 /* swipe rows on phones: dots follow the card in view (no scroll listeners, so nothing to slow scrolling) */
 document.querySelectorAll(".eras,.pipe").forEach(list => {
   const items = [...list.querySelectorAll(":scope > li")], dots = document.createElement("div");
@@ -1107,10 +1160,25 @@ function storyTick() {
   if (storyN === 1 && !storyFirst) nextStory();
   storyFirst = false;
   showStep(storyN);
-  if (narrow.matches) document.querySelectorAll(".beats article").forEach(a => a.classList.toggle("on", +a.dataset.step === storyN));
+  if (narrow.matches) phoneStep(storyN, true);
   storyTimer = setTimeout(storyTick, STEP_MS[storyN]);
 }
-if (calm) { showStep(3); if (narrow.matches) document.querySelectorAll(".beats article").forEach(a => a.classList.add("on")); } else storyTick();
+/* phones: a three-part progress bar fills in time with the demo, and one caption swaps in place. Tap a part to jump to it. */
+function phoneStep(n, fill) {
+  document.querySelectorAll(".beats article").forEach(a => a.classList.toggle("on", +a.dataset.step === n));
+  document.querySelectorAll("#stepbar button").forEach(b => {
+    const s = +b.dataset.s, bar = b.querySelector("i");
+    b.classList.toggle("cur", s === n);
+    bar.style.transition = "none"; bar.style.transform = `scaleX(${s < n || (s === n && !fill) ? 1 : 0})`;
+    if (s === n && fill) { void bar.offsetWidth; bar.style.transition = `transform ${STEP_MS[n]}ms linear`; bar.style.transform = "scaleX(1)"; }
+  });
+}
+document.querySelectorAll("#stepbar button").forEach(b => b.onclick = () => {
+  const s = +b.dataset.s;
+  if (calm) { showStep(s); phoneStep(s, false); return; }
+  clearTimeout(storyTimer); storyN = s - 1; if (s === 1) storyFirst = true; storyTick();
+});
+if (calm) { showStep(3); if (narrow.matches) phoneStep(3, false); } else storyTick();
 // the text on the right lights up as you scroll; it never changes the animation on the left
 const beatIO = new IntersectionObserver(es => es.forEach(en => {
   if (en.isIntersecting && !narrow.matches) document.querySelectorAll(".beats article").forEach(a => a.classList.toggle("on", a === en.target));
