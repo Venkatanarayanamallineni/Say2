@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <script>
-  let t = "dark"; try { const v = localStorage.getItem("fa_theme"); if (v === "light") t = "light"; } catch (e) {}
+  let t = "light"; try { const v = localStorage.getItem("fa_theme"); if (v === "dark") t = "dark"; } catch (e) {}
   document.documentElement.dataset.theme = t;
   // the opening film: once per visit, never for reduced motion. Add ?intro to any link to force it (for recording).
   try {
@@ -464,8 +464,10 @@
     .hero{grid-template-columns:minmax(0,1fr);min-height:0;padding-top:40px;gap:28px}
     .stage-hero .seal{right:-8px;width:66px;font-size:34px}
     .story{grid-template-columns:1fr;gap:0}
-    .stage-wrap{top:64px;height:auto;padding:12px 0;z-index:2;background:linear-gradient(var(--bg) 85%,transparent)}
-    .beats article{min-height:70vh}
+    /* phones and tablets: the demo plays, the three steps sit right under it and light up in time with it */
+    .stage-wrap{position:static;height:auto;padding:0 0 10px}
+    .beats article{min-height:0;padding:18px 0;border-top:1px solid var(--line)}
+    .beats h3{font-size:30px;max-width:none;opacity:.35} .beats p{font-size:16.5px;opacity:.35}
     .grid{grid-template-columns:1fr 1fr}
     .eras{grid-template-columns:1fr;gap:34px}
     .eras::before{display:none}
@@ -478,7 +480,7 @@
     /* story on small phones: one layer per step, text kept clear of the sticky mock */
     .stage.s3 .pdf{opacity:0;transform:perspective(700px) rotateY(-30deg)}
     .mchat{width:80%;right:4%}
-    .beats article{min-height:70vh;justify-content:flex-end;padding-bottom:9vh} }
+    .beats article{padding:16px 0} }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
     .eras li{opacity:1;transform:none}.eras::before,.pipe::before{transform:none}
@@ -1068,6 +1070,7 @@ function showStep(n) {
 }
 // one loop per business: reading 2.6 s, PDF 2.6 s, answer 4.8 s (10 s), six businesses in a minute
 const STEP_MS = { 1: 2600, 2: 2600, 3: 4800 };
+const narrow = matchMedia("(max-width:960px)");   // stacked layout: steps follow the demo instead of the scroll
 let storyN = 0, storyFirst = true, storyTimer = null;
 function storyTick() {
   if (!storyVisible || document.hidden) { storyTimer = setTimeout(storyTick, 600); return; }   // wait until it is seen
@@ -1075,12 +1078,13 @@ function storyTick() {
   if (storyN === 1 && !storyFirst) nextStory();
   storyFirst = false;
   showStep(storyN);
+  if (narrow.matches) document.querySelectorAll(".beats article").forEach(a => a.classList.toggle("on", +a.dataset.step === storyN));
   storyTimer = setTimeout(storyTick, STEP_MS[storyN]);
 }
-if (calm) showStep(3); else storyTick();
+if (calm) { showStep(3); if (narrow.matches) document.querySelectorAll(".beats article").forEach(a => a.classList.add("on")); } else storyTick();
 // the text on the right lights up as you scroll; it never changes the animation on the left
 const beatIO = new IntersectionObserver(es => es.forEach(en => {
-  if (en.isIntersecting) document.querySelectorAll(".beats article").forEach(a => a.classList.toggle("on", a === en.target));
+  if (en.isIntersecting && !narrow.matches) document.querySelectorAll(".beats article").forEach(a => a.classList.toggle("on", a === en.target));
 }), { rootMargin: "-45% 0px -45% 0px" });
 document.querySelectorAll(".beats article").forEach(a => beatIO.observe(a));
 

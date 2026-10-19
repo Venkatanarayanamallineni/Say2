@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/static/brand/say2_icon_32.png">
 <link rel="apple-touch-icon" href="/static/brand/say2_icon_180.png">
 <script>
-  let t = "dark"; try { const v = localStorage.getItem("fa_theme"); if (v === "light") t = "light"; } catch (e) {}
+  let t = "light"; try { const v = localStorage.getItem("fa_theme"); if (v === "dark") t = "dark"; } catch (e) {}
   document.documentElement.dataset.theme = t;
   if (t === "dark") document.documentElement.setAttribute("data-dark", "");
 </script>

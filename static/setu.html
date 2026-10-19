@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Setu test</title>
+<style>
+  :root { --bg:#F4F1EB; --ink:#24211D; }
+  body.dark { --bg:#15130F; --ink:#EFE8DC; }
+  html,body { margin:0; height:100%; background:var(--bg); overflow:hidden; font-family:Geist,system-ui,Segoe UI,sans-serif; transition:background .4s; }
+  .hint { position:fixed; bottom:14px; left:16px; color:var(--ink); opacity:.4; font-size:13px; }
+
+  .rig { position:absolute; left:40%; top:66%; width:190px; height:162px; transform:translate(-50%,-50%); }
+  .setu { width:100%; overflow:visible; animation:float 4.2s ease-in-out infinite; transform-origin:50% 70%; }
+  @keyframes float { 0%,100% { transform:translateY(0) rotate(-2.5deg); } 50% { transform:translateY(-16px) rotate(2.5deg); } }
+  .shadow { position:absolute; left:50%; bottom:-30px; width:110px; height:14px; margin-left:-55px; border-radius:50%;
+            background:radial-gradient(rgba(20,30,50,.25),transparent 70%); animation:shade 4.2s ease-in-out infinite; }
+  @keyframes shade { 50% { transform:scaleX(.72); opacity:.5; } }
+  .star { animation:tw var(--d) ease-in-out var(--o) infinite; }
+  @keyframes tw { 0%,100% { opacity:.2; } 50% { opacity:1; } }
+  .eye { animation:blink 5s infinite; transform-box:fill-box; transform-origin:center; }
+  @keyframes blink { 0%,94%,100% { transform:scaleY(1); } 96.5% { transform:scaleY(.08); } }
+  #open { transform-box:fill-box; transform-origin:center top; opacity:0; }
+  .talk #open { opacity:1; } .talk #smile { opacity:0; }
+
+  /* glossy blue bubbles, like a diver's air */
+  .gb { position:absolute; border-radius:50%; pointer-events:none;
+        background:radial-gradient(circle at 34% 30%, #fff 0 10%, #CDEFFB 20%, #7FD0EE 52%, #2F8DC2 100%);
+        box-shadow:inset -2px -3px 5px rgba(10,60,100,.25), 0 2px 4px rgba(10,60,100,.12); }
+  .gb::after { content:""; position:absolute; right:22%; bottom:18%; width:16%; height:16%; border-radius:50%; background:rgba(255,255,255,.7); }
+  .rise { animation:rise var(--t) cubic-bezier(.4,0,.6,1) forwards; }
+  @keyframes rise { 0% { opacity:0; transform:translate(0,0) scale(.4); } 15% { opacity:1; }
+                    100% { opacity:0; transform:translate(var(--x),-150px) scale(1); } }
+  .pop { opacity:0; transform:scale(.1); transition:opacity .25s, transform .4s cubic-bezier(.3,1.7,.5,1); }
+  .pop.on { opacity:1; transform:scale(1); }
+
+  /* the words sit in a two-tone water splash */
+  .splash { position:absolute; left:150px; bottom:176px; width:290px; height:124px;
+            opacity:0; transform:scale(.3); transform-origin:12% 100%; transition:opacity .3s, transform .5s cubic-bezier(.3,1.45,.5,1); }
+  .splash.on { opacity:1; transform:none; }
+  .splash svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  .splash .wob { animation:wob 3s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
+  .splash .wob2 { animation:wob 3s ease-in-out -1.5s infinite; transform-origin:center; transform-box:fill-box; }
+  @keyframes wob { 50% { transform:scale(1.025,.975) translateY(-2px); } }
+  .splash p { position:absolute; inset:0; margin:0; padding:0 40px; display:flex; align-items:center; justify-content:center;
+              text-align:center; color:#2378AE; font-size:16px; line-height:1.35; font-weight:500; }
+  .splash b { color:#1A5F8C; font-weight:650; }
+  body.dark .splash p { color:#8FD3F0; } body.dark .splash b { color:#BDE7F8; }
+</style>
+</head>
+<body>
+<div class="rig" id="rig">
+  <div class="shadow"></div>
+  <svg class="setu" id="setu" viewBox="0 0 200 170" aria-label="Setu, a little star stone">
+    <defs>
+      <clipPath id="clip"><path d="M24 148 L18 116 L38 88 L56 56 L90 26 L128 20 L154 40 L174 70 L188 106 L184 142 L158 158 L96 162 Z"/></clipPath>
+    </defs>
+    <g stroke-linejoin="round" stroke-linecap="round">
+      <path d="M24 148 L18 116 L38 88 L56 56 L90 26 L128 20 L154 40 L174 70 L188 106 L184 142 L158 158 L96 162 Z" fill="#5E6E86"/>
+      <g clip-path="url(#clip)">
+        <path d="M56 56 L90 26 L128 20 L118 44 L84 52 Z" fill="#A9B8CC"/>
+        <path d="M38 88 L56 56 L84 52 L70 84 Z" fill="#8C9DB5"/>
+        <path d="M128 20 L154 40 L174 70 L150 92 L142 58 L118 44 Z" fill="#46546B"/>
+        <path d="M150 92 L174 70 L188 106 L166 118 Z" fill="#3A475C"/>
+        <path d="M18 116 L38 88 L70 84 L60 130 L24 148 Z" fill="#6B7C95"/>
+        <path d="M166 118 L188 106 L184 142 L158 158 L144 136 Z" fill="#4C5A72"/>
+        <g id="stars"></g>
+      </g>
+      <path d="M118 44 L142 58 L150 92 M150 92 L166 118 L144 136 M118 44 L84 52" fill="none" stroke="#151A23" stroke-width="3.5"/>
+      <path d="M24 148 L18 116 L38 88 L56 56 L90 26 L128 20 L154 40 L174 70 L188 106 L184 142 L158 158 L96 162 Z" fill="none" stroke="#151A23" stroke-width="6"/>
+    </g>
+    <!-- face: calm oval eyes with two glints, a wide easy smile -->
+    <g class="eye"><ellipse cx="86" cy="84" rx="6.2" ry="8.6" fill="#10141C"/><circle cx="88.4" cy="80.6" r="2.4" fill="#fff"/><circle cx="84.3" cy="87.8" r="1.1" fill="#fff" opacity=".8"/></g>
+    <g class="eye"><ellipse cx="120" cy="84" rx="6.2" ry="8.6" fill="#10141C"/><circle cx="122.4" cy="80.6" r="2.4" fill="#fff"/><circle cx="118.3" cy="87.8" r="1.1" fill="#fff" opacity=".8"/></g>
+    <path id="smile" d="M89 101 Q103 110 117 101" fill="none" stroke="#10141C" stroke-width="3.4" stroke-linecap="round"/>
+    <path id="open" d="M89 100 Q103 101 117 100 Q103 113 89 100 Z" fill="#10141C" stroke="#10141C" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+  <div class="gb pop" id="p1" style="width:10px;height:10px;left:128px;top:-10px"></div>
+  <div class="gb pop" id="p2" style="width:16px;height:16px;left:140px;top:-30px"></div>
+  <div class="gb pop" id="p3" style="width:9px;height:9px;left:158px;top:-34px"></div>
+  <div class="splash" id="splash">
+    <svg viewBox="0 0 340 150" preserveAspectRatio="none" aria-hidden="true">
+      <path class="wob2" fill="rgba(47,141,194,.16)" d="M30 52 C38 24 82 34 104 26 C134 14 164 30 196 22 C228 14 270 24 290 40 C318 50 316 82 306 98 C318 118 292 138 262 132 C234 146 198 136 170 142 C138 150 106 136 78 142 C44 148 18 130 24 106 C4 92 10 64 30 52Z" transform="translate(8 9)"/>
+      <path class="wob" fill="rgba(124,205,235,.26)" stroke="rgba(47,141,194,.35)" stroke-width="1.2" vector-effect="non-scaling-stroke" d="M30 46 C38 18 82 28 104 20 C134 8 164 24 196 16 C228 8 270 18 290 34 C318 44 316 76 306 92 C318 112 292 132 262 126 C234 140 198 130 170 136 C138 144 106 130 78 136 C44 142 18 124 24 100 C4 86 10 58 30 46Z"/>
+      <g fill="rgba(47,141,194,.45)"><circle cx="12" cy="40" r="4"/><circle cx="328" cy="120" r="4.5"/><circle cx="20" cy="138" r="3"/><circle cx="318" cy="22" r="3"/></g>
+      <g stroke="rgba(47,141,194,.45)" stroke-width="2.5" stroke-linecap="round"><path d="M300 10 L306 0"/><path d="M312 16 L322 10"/><path d="M8 24 L2 16"/></g>
+    </svg>
+    <p><span id="txt"></span></p>
+  </div>
+</div>
+<div class="hint">D: dark / light</div>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg", rnd = (a, b) => a + Math.random() * (b - a);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const $ = id => document.getElementById(id);
+
+  /* a few twinkling specks in the stone, one red say2 star */
+  function star(x, y, s, color) {
+    const p = document.createElementNS(NS, "path");
+    p.setAttribute("d", `M${x} ${y-s} Q${x} ${y} ${x+s} ${y} Q${x} ${y} ${x} ${y+s} Q${x} ${y} ${x-s} ${y} Q${x} ${y} ${x} ${y-s}Z`);
+    p.setAttribute("fill", color || "#fff"); p.setAttribute("class", "star");
+    p.style.setProperty("--d", rnd(1.8, 4).toFixed(2) + "s"); p.style.setProperty("--o", rnd(-4, 0).toFixed(2) + "s");
+    $("stars").appendChild(p);
+  }
+  for (let i = 0; i < 26; i++) { const x = rnd(30, 180), y = rnd(40, 155); if (Math.hypot(x - 103, y - 92) > 30) star(x, y, rnd(.8, 1.8)); }
+  [[50,128,4],[165,135,3.5],[78,62,3]].forEach(([x, y, s]) => star(x, y, s));
+  star(168, 92, 4, "#E23A4E");
+
+  /* tiny glossy bubbles rise while Setu talks */
+  function puff() {
+    const b = document.createElement("div"), s = rnd(4, 9);
+    b.className = "gb rise";
+    Object.assign(b.style, { width:s + "px", height:s + "px", left:rnd(100, 130) + "px", top:"14px" });
+    b.style.setProperty("--x", rnd(-20, 24).toFixed(0) + "px"); b.style.setProperty("--t", rnd(1.4, 2.3).toFixed(2) + "s");
+    $("rig").appendChild(b); setTimeout(() => b.remove(), 2500);
+  }
+  let mouthT = 0, streamT = 0;
+  function talking(on) {
+    clearInterval(mouthT); clearInterval(streamT);
+    $("setu").classList.toggle("talk", on); $("open").style.transform = "";
+    if (on) { mouthT = setInterval(() => $("open").style.transform = `scaleY(${rnd(.35, 1).toFixed(2)})`, 110); streamT = setInterval(puff, 260); }
+  }
+
+  async function say(html, holdMs) {
+    for (const id of ["p1", "p2", "p3"]) { $(id).classList.add("on"); await sleep(120); }
+    $("txt").innerHTML = html; $("splash").classList.add("on"); talking(true);
+    await sleep(holdMs); talking(false);
+    $("splash").classList.remove("on"); await sleep(120);
+    for (const id of ["p3", "p2", "p1"]) { $(id).classList.remove("on"); await sleep(80); }
+    await sleep(500);
+  }
+  (async function loop() {
+    await sleep(700);
+    await say("Hi, I'm <b>Setu</b>.", 1800);
+    await say("I'm a pumice stone. In the old story, stones like me floated to build a bridge.", 3600);
+    await say("Now I'm the bridge between a small business and <b>every customer</b>.", 3600);
+    await sleep(1200); loop();
+  })();
+  addEventListener("keydown", e => { if (e.key.toLowerCase() === "d") document.body.classList.toggle("dark"); });
+</script>
+</body>
+</html>
