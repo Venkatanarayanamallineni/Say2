@@ -32,8 +32,12 @@ DAY = {"date": "", "count": 0}
 
 
 def client_ip(request):
-    """Real visitor IP. Render keeps any X-Forwarded-For the visitor sends and appends to it,
-    so the leftmost entry can be faked. Read from the right and skip Render's own private hops."""
+    """Real visitor IP. Render sits behind Cloudflare, which writes the visitor's real IP into
+    CF-Connecting-IP and overwrites any fake one. X-Forwarded-For keeps whatever the visitor sent,
+    so it is only a fallback (for local runs), read from the right."""
+    cf = (request.headers.get("cf-connecting-ip") or "").strip()
+    if cf:
+        return cf
     parts = [p.strip() for p in (request.headers.get("x-forwarded-for") or "").split(",") if p.strip()]
     for p in reversed(parts):
         try:
