@@ -32,8 +32,16 @@ DAY = {"date": "", "count": 0}
 
 
 def client_ip(request):
-    fwd = request.headers.get("x-forwarded-for")
-    return (fwd.split(",")[0] if fwd else request.client.host).strip()
+    """Real visitor IP. Render keeps any X-Forwarded-For the visitor sends and appends to it,
+    so the leftmost entry can be faked. Read from the right and skip Render's own private hops."""
+    parts = [p.strip() for p in (request.headers.get("x-forwarded-for") or "").split(",") if p.strip()]
+    for p in reversed(parts):
+        try:
+            if ipaddress.ip_address(p).is_global:
+                return p
+        except ValueError:
+            continue
+    return parts[-1] if parts else request.client.host
 
 
 def rate_limit(request, key, limit, window):
