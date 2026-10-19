@@ -560,6 +560,14 @@ def health():
     return {"ok": True}
 
 
+@app.get("/whoami")  # TEMPORARY: shows only the caller's own headers, to check client_ip. Remove after testing.
+def whoami(request: Request):
+    h = request.headers
+    return {"x-forwarded-for": h.get("x-forwarded-for"), "true-client-ip": h.get("true-client-ip"),
+            "cf-connecting-ip": h.get("cf-connecting-ip"), "x-real-ip": h.get("x-real-ip"),
+            "socket": request.client.host, "we_use": client_ip(request)}
+
+
 @app.get("/config")
 def config():
     """Public settings for our own pages. Set REPO_URL in .env / Render to show the GitHub link."""
