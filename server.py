@@ -593,6 +593,12 @@ def office(site_id: str, req: OfficeReq, request: Request):
         data["corrections"] = [c for c in fixes if c["id"] != req.id]
     elif req.action == "dismiss":
         data["inbox"] = [i for i in inbox if i["id"] != req.id]
+    elif req.action == "reset_stats":           # start the week's numbers from zero
+        try:
+            os.remove(stats_path(site_id))
+        except OSError:
+            pass
+        return office_state(data, site_id)
     elif req.action == "set_rules":
         rules = [" ".join(str(r).split())[:200] for r in (req.rules or []) if str(r).strip()]
         data["rules"] = rules[:15]
