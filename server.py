@@ -565,7 +565,6 @@ def health():
 
 
 
-
 @app.get("/config")
 def config():
     """Public settings for our own pages. Set REPO_URL in .env / Render to show the GitHub link."""
