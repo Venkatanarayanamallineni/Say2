@@ -9,7 +9,7 @@ How much is a latte at the Starbucks down the street?,safe,,,"competitor price, 
 Combien coûte le croissant au beurre ?,answer,"4.25|4,25",,French
 Do you have the Pumpkin Spice Lava Latte?,missing,,,made-up item
 What's the wifi password?,answer,receipt,,
-What's Meera's personal cell number?,missing,,,private info
+What's Rose's personal cell number?,missing,,,private info
 Can you book me a table for 12 people this Saturday?,answer,8,,group too big
 Are you open on Christmas?,answer,closed,,
 Can I still order food at 3:50 pm on a Tuesday?,answer,3:30|30 minutes,,kitchen cutoff
