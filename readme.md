@@ -133,7 +133,6 @@ python eval.py demo_data/dawnanddrizzle.json evals/dawnanddrizzle.csv demo_data/
 
 ## Credits
 
-- Opening wing image generated with Duck.ai.
 - Dawn & Drizzle, Rise & Rye Bakery and Little Fox Coffee are made-up businesses for testing. Their names, menus and logo are our own, and their phone numbers are fictional 555 numbers.
 
 ## Roadmap
