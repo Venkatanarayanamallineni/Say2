@@ -66,7 +66,7 @@ There's no vector database and no training step. A small business site fits insi
 
 ## Does it make things up? We tested it.
 
-We built three made-up businesses with very different websites and asked say2 **118 questions** with `eval.py`:
+We built three made-up food businesses with very different websites and asked say2 **118 questions** with `eval.py`. We picked food on purpose: menus and PDF price lists are some of the hardest content to read correctly. say2 itself works for any small business site.
 
 - **Dawn & Drizzle**, a café: menus, a PDF drinks list, hours, catering, a booking page. 60 questions.
 - **Rise & Rye Bakery**: a messy two-column PDF price list ("1/2 dz", seasonal items), custom cake rules, allergy notes. 35 questions.
@@ -94,6 +94,23 @@ Run it yourself:
 ```bash
 python eval.py demo_data/dawnanddrizzle.json evals/dawnanddrizzle.csv demo_data/dawnanddrizzle.json evals/dawnanddrizzle_tricky.csv demo_data/riseandrye.json evals/riseandrye.csv demo_data/littlefox.json evals/littlefox.csv
 ```
+
+## Limitations (published on purpose)
+
+- **Sites it can't read yet:** sites that block automated readers, pages built entirely with JavaScript, and menus that are photos inside a PDF (no OCR yet).
+- **Site size:** up to about 250,000 characters are read per answer. Bigger sites use Smart pick, which sends only the matching pages and can miss an answer spread across many pages.
+- **Speed:** about 2.2 s per answer in our tests. Big sites and long reasoning take longer, and on Render's free tier the first question after 15 quiet minutes can take about 30 s while the server wakes up.
+- **Storage on the free demo:** Render's free disk resets on restart, so Back office answers and new sites on the live demo can be lost. The test businesses in `demo_data/` always survive. A real deployment needs a persistent disk or a database.
+- **Freshness:** say2 reads the site once at setup. If prices change, the owner pastes the link into say2 again to re-read it (auto re-read is on the roadmap).
+- **Languages:** tested in English, Spanish and French. Other languages work but are untested.
+- **It can still be wrong:** 116/118 isn't 118/118. Allergy and health answers always send the customer to the staff.
+
+## Accessibility
+
+- **Voice input:** customers can speak their question (microphone button, where the browser supports it).
+- **Reduced motion:** the opening film, chat animations and effects switch off for visitors who ask their device for less motion.
+- **Keyboard and screen readers:** the chat works with the keyboard (Enter to send, focus moves into the chat), and controls have labels for screen readers.
+- **Dark mode** in the chat, for tired eyes at night.
 
 ---
 
