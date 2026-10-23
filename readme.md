@@ -8,7 +8,7 @@
 
 say2 gives any small business website a front desk. Paste your link, and it reads your site, up to 50 pages plus the PDFs they link to: menus, price lists, schedules, the fine print. Then it adds a small chat bubble to your site that answers customers in your voice, any time of day, with a link to where each answer came from.
 
-**[Try it live →](https://say2.onrender.com)** &nbsp;·&nbsp; **[See it on a demo café →](https://say2.onrender.com/static/demo/dawn/index.html)** &nbsp;·&nbsp; Demo video: _add link_
+**[Try it live →](https://say2.onrender.com)** &nbsp;·&nbsp; **[See it on a demo café →](https://say2.onrender.com/static/demo/dawn/index.html)** &nbsp;·&nbsp; **[Demo video →](https://youtu.be/yujQ2EIBKjc)**
 
 ---
 
@@ -129,7 +129,10 @@ python eval.py demo_data/dawnanddrizzle.json evals/dawnanddrizzle.csv demo_data/
 
 **Built during the hackathon:** everything here was built during the submission period, starting October 7, 2026.
 
-**Feedback on NVIDIA and Nebius tools:** _fill in before submitting: what worked well, what was confusing, what you'd want next._
+**Feedback on NVIDIA and Nebius tools**
+- **What worked well:** Token Factory's OpenAI-compatible API worked with the standard OpenAI Python client, and moving from Nemotron Nano to Super was a one-line change (the model name). Nemotron 3 Super followed strict grounding rules ("only use the site's text", "never invent a price") far better than the smaller model we tried first, and a whole small-business site fits in its context, so we never needed a vector database.
+- **What was hard:** with reasoning on, the hidden reasoning sometimes used the whole token budget and the visible answer came back empty. It took a 118-question test to catch it. We now retry once with a bigger budget. A clear signal in the response (for example "stopped during reasoning") would make this much easier to handle.
+- **What we'd like next:** a per-request reasoning budget or effort setting, so short questions can answer faster while hard ones still think; and clear documentation on prompt caching for a long, unchanging prefix (the whole website), since that's what every say2 request starts with.
 
 ## Credits
 
