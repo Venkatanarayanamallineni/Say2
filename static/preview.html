@@ -21,7 +21,8 @@
   body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.6 "Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   .note{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:10px;
     background:var(--pill);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:7px 16px;font-size:13.5px;color:var(--muted);
-    box-shadow:0 12px 30px -16px rgba(36,33,29,.4);white-space:nowrap}
+    box-shadow:0 12px 30px -16px rgba(36,33,29,.4);max-width:calc(100% - 24px);width:max-content;text-align:center;line-height:1.35}
+  @media (max-width:560px){.note{border-radius:16px;font-size:12.5px}}
   .note i{width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 22%,transparent)}
   /* a quiet stand-in for the business's real site */
   .site{max-width:960px;margin:0 auto;padding:70px 24px 120px}
