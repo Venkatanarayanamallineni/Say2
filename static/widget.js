@@ -453,7 +453,7 @@
   const toggle = () => {
     const open = panel.classList.toggle("fa-open");
     root.classList.toggle("fa-is-open", open);
-    if (open && !msgs.children.length) addMsg("Hi! Ask us anything: menu, prices, hours, bookings." + (SR ? " Type or tap the mic." : ""), "bot");
+    if (open && !msgs.children.length) addMsg("Hi! Ask us anything: what we offer, prices, hours, bookings." + (SR ? " Type or tap the mic." : ""), "bot");
     if (open) input.focus();
     else if (canSpeak) speechSynthesis.cancel();
   };

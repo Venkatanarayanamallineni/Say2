@@ -58,13 +58,14 @@ def norm(s):
 
 def known_text(data):
     """Everything say2 is allowed to know: site text plus the owner's own answers and rules."""
-    bits = [p["text"] for p in data["pages"]]
+    bits = [p["text"] for p in data["pages"]] + [data.get("footer") or ""]
     bits += [c["a"] for c in data.get("corrections") or []] + list(data.get("rules") or [])
     return norm(" ".join(bits))
 
 
 def known_urls(data):
     urls = {p["url"] for p in data["pages"]} | {a["url"] for a in data.get("actions") or []} | {data["site"]}
+    urls |= {s["url"] for s in data.get("socials") or []}
     return {u.rstrip("/").lower() for u in urls}
 
 
@@ -84,15 +85,23 @@ def made_up(answer, text, urls):
     bad = []
     on_site = lambda n: any(re.search(r"(?<![\d.])" + re.escape(v) + r"(?![\d])", text) for v in money_variants(n))
     amounts = MONEY.findall(answer)
-    real = [float(a.replace(",", "")) for a in amounts if on_site(a)]
+    # math is not invention: starting from real prices in the answer, a number counts if it is a sum, a difference,
+    # or a real price times a small count (2 to 12) of numbers already counted, worked out step by step
+    # ("$49 x 12 = $588", then "$588 - $499 = $89"). A number that can't be built that way is still flagged.
+    ok = {float(a.replace(",", "")) for a in amounts if on_site(a)}
+    left = [float(a.replace(",", "")) for a in amounts if not on_site(a)]
+    near = lambda x, y: abs(x - y) < .005
+    grew = True
+    while grew and left:
+        grew = False
+        for x in list(left):
+            known = list(ok)
+            if (any(near(a + b, x) or near(abs(a - b), x) for i, a in enumerate(known) for b in known[i:])
+                    or any(near(a * k, x) for a in known for k in range(2, 13))):
+                ok.add(x); left.remove(x); grew = True
     for n in amounts:
-        if on_site(n):
-            continue
-        # a total that adds two real prices from the same answer is arithmetic, not an invented price
-        x = float(n.replace(",", ""))
-        if any(abs(a + b - x) < .005 for i, a in enumerate(real) for b in real[i + 1:]):
-            continue
-        bad.append("$" + n)
+        if not on_site(n) and float(n.replace(",", "")) not in ok:
+            bad.append("$" + n)
     for u in URL.findall(answer):
         u = u.rstrip(".,;:").rstrip("/").lower()
         if u not in urls and u not in text:
@@ -100,11 +109,22 @@ def made_up(answer, text, urls):
     return bad
 
 
+def loose(s):
+    """'5-mile' and '5 miles' read the same: hyphens become spaces and a plural s on a word is ignored."""
+    return " ".join(re.sub(r"s\b", "", w) for w in s.replace("-", " ").split())
+
+
 def score(row, res, text, urls):
     a = norm(res["answer"])
+    la = loose(a)
     kind = (row.get("type") or "answer").lower()
     fake = made_up(res["answer"], text, urls)
-    missing_words = [" / ".join(g) for g in groups(row.get("must", "")) if not any(w in a for w in g)]
+    def has(w):
+        # a word may not start mid-word ("5 miles" never matches "15 miles"), and a number may not run on
+        # ("49" never matches "$499"), but a word may be the start of a longer one ("oct" matches "october")
+        tail = r"(?![\d])" if w[-1:].isdigit() else ""
+        return any(re.search(r"(?<![\w.])" + re.escape(x) + tail, t) for x, t in ((w, a), (loose(w), la)))
+    missing_words = [" / ".join(g) for g in groups(row.get("must", "")) if not any(has(w) for w in g)]
     avoided = [w for g in groups(row.get("avoid", "")) for w in g if w in a]
     problems = []
     if not res["answer"].strip():

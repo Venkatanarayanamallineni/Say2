@@ -303,6 +303,11 @@ def run_setup(job_id, req, url, sid, token):
         data["effect"] = {"motion": style["motion"], "emoji": (req.emoji or "").strip() or style["emoji"]}
         data["edit_hash"] = token_hash(token)
         data["updated"] = int(time.time())
+        old = read_own_site(sid)          # a re-read: keep everything the owner wrote in Back office
+        if old and old.get("edit_hash") == data["edit_hash"]:
+            for k in ("corrections", "rules", "inbox", "claimed_t", "theme", "depth"):
+                if k in old and k not in data:
+                    data[k] = old[k]
         if sum(len(p["text"]) for p in data["pages"]) > BIG_SITE_CHARS:
             data["depth"] = "smart"     # big site: read only the matching pages, so each answer stays cheap
             job["big"] = True

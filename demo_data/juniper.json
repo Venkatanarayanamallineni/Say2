@@ -1,0 +1,59 @@
+{
+  "site": "https://say2.onrender.com/static/demo/juniper/index.html",
+  "name": "Juniper Hair Studio",
+  "description": "",
+  "logo": null,
+  "actions": [
+    {
+      "url": "https://www.vagaro.com/juniperhair-example",
+      "text": "Book now",
+      "kind": "book"
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://say2.onrender.com/static/demo/juniper/index.html",
+      "title": "Juniper Hair Studio | Des Moines",
+      "text": "Juniper Hair Studio | Des Moines Hair that feels like you. A small, appointment-only salon in Des Moines. Cuts, color and curly hair care, with four chairs and no rush. Walk-ins welcome on Saturdays if a chair is free. Everything else is by appointment: book online ."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/juniper/services.html",
+      "title": "Services and prices | Juniper Hair Studio",
+      "text": "Services and prices | Juniper Hair Studio Services Prices start at the amount shown and depend on hair length and stylist level. Women's cut and style from $55 Men's cut $32 Kids cut (12 and under) $22 Curly cut (dry cut, 90 min) from $75 Root touch-up $70 All-over color from $95 Balayage from $180 Blowout $40 Deep conditioning add-on +$15 New color clients need a patch test 48 hours before their appointment. It takes 5 minutes and is free."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/juniper/team.html",
+      "title": "Stylists | Juniper Hair Studio",
+      "text": "Stylists | Juniper Hair Studio Our stylists Maya (owner, master stylist): color and balayage. Theo : curly cuts and men's cuts. Priya : cuts, blowouts and bridal styling, Saturdays only. Master stylist services cost $15 more than the listed price."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/juniper/policies.html",
+      "title": "Policies | Juniper Hair Studio",
+      "text": "Policies | Juniper Hair Studio Policies Please give us 24 hours notice to cancel or move an appointment. Late cancellations and no-shows are charged 50% of the service. Running more than 15 minutes late may mean we need to reschedule. We accept cards and cash. Gift cards are sold in the salon in any amount. Not happy with your cut? Tell us within 7 days and we will fix it free."
+    }
+  ],
+  "socials": [
+    {
+      "name": "Instagram",
+      "url": "https://instagram.com/juniperhair.example"
+    },
+    {
+      "name": "Facebook",
+      "url": "https://www.facebook.com/juniperhairstudio.example"
+    },
+    {
+      "name": "Yelp",
+      "url": "https://www.yelp.com/biz/juniper-hair-studio-example"
+    }
+  ],
+  "footer": "Juniper Hair Studio · 1108 Ingersoll Ave, Des Moines, IA · Text or call (515) 555-0177 Tue to Fri 10 to 7 · Sat 9 to 3 · Sun and Mon closed Demo business made for the say2 hackathon project. Not a real business.",
+  "tone": "friendly",
+  "effects": true,
+  "theme": "auto",
+  "type": "salon",
+  "brand": "#8E4B62",
+  "effect": {
+    "motion": "twinkle",
+    "emoji": "✂️"
+  }
+}

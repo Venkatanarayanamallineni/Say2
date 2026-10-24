@@ -1,0 +1,64 @@
+{
+  "site": "https://say2.onrender.com/static/demo/oak/index.html",
+  "name": "Iron Oak Fitness",
+  "description": "Iron Oak Fitness is a family-owned gym in Ames, Iowa with strength training, spin and yoga classes.",
+  "logo": null,
+  "actions": [
+    {
+      "url": "https://www.mindbodyonline.com/explore/locations/iron-oak-fitness-example",
+      "text": "Book a class",
+      "kind": "book"
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://say2.onrender.com/static/demo/oak/index.html",
+      "title": "Iron Oak Fitness | Family-owned gym in Ames, Iowa",
+      "text": "Iron Oak Fitness | Family-owned gym in Ames, Iowa Strong starts here. Iron Oak Fitness is a family-owned gym in Ames, Iowa, opened by Dana and Luis Ortega in 2016. We have a full free-weight floor, cardio machines, spin, yoga and small-group strength classes for every level, from first-timers to powerlifters. Book a class See membership prices What you get Free-weight floor with 6 squat racks Cardio: treadmills, bikes, rowers Group classes included with every membership Personal training with certified coaches Showers and lockers Meet the team Rayan is our head coach and a certified personal trainer with 9 years of experience. He runs Strength 101 and most of our personal training. Dana handles memberships at the front desk. New here? Your first visit is free. Just bring a photo ID and sign a waiver at the front desk."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/oak/membership.html",
+      "title": "Membership | Iron Oak Fitness",
+      "text": "Membership | Iron Oak Fitness Membership No contracts on monthly plans and no sign-up fee. Monthly membership $49 / month Annual membership (paid upfront) $499 / year Student monthly (valid student ID) $35 / month Day pass $15 10-class pack (non-members) $110 Personal training with Rayan, 1 session $60 Personal training, 4 sessions $220 Pay by card or bank draft. Members save 10% on personal training. Cancellation, freezing and refunds are explained in our membership policies (PDF) ."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/oak/iron-oak-policies.pdf",
+      "title": "PDF: iron-oak-policies.pdf",
+      "text": "Iron Oak Fitness - Membership policies Cancelling: monthly memberships can be cancelled any time with 30 days notice, in person or by email. Annual memberships can be cancelled within 14 days of signing up for a full refund. Freezing: you can freeze your membership for up to 3 months a year for $5 a month. Refunds: day passes and class packs are not refundable. Lost cards: replacement key cards cost $10."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/oak/classes.html",
+      "title": "Classes | Iron Oak Fitness",
+      "text": "Classes | Iron Oak Fitness Class schedule All classes are included with membership. Non-members can use a day pass or a 10-class pack. Strength 101 (beginners) Monday 6 pm Spin Tuesday and Thursday 6 pm Yoga flow Wednesday 7 pm and Saturday 9 am HIIT Friday 6:30 am Classes are 45 minutes and capped at 16 people. Book a class online ."
+    },
+    {
+      "url": "https://say2.onrender.com/static/demo/oak/faq.html",
+      "title": "FAQ | Iron Oak Fitness",
+      "text": "FAQ | Iron Oak Fitness Questions Is there parking? Yes, free parking in the lot behind the building. Do you have showers and lockers? Yes. Bring your own lock, or borrow one at the front desk. Can I bring a friend? Members can bring one guest free twice a month. How old do I have to be? 16 and up. Ages 14 and 15 can work out with a parent or guardian. Can I bring my dog? Only service animals are allowed inside."
+    }
+  ],
+  "socials": [
+    {
+      "name": "Instagram",
+      "url": "https://www.instagram.com/ironoakfitness.example/"
+    },
+    {
+      "name": "Facebook",
+      "url": "https://www.facebook.com/ironoakfitness.example"
+    },
+    {
+      "name": "TikTok",
+      "url": "https://www.tiktok.com/@ironoakfit.example"
+    }
+  ],
+  "footer": "Iron Oak Fitness 214 Lincoln Way, Ames, IA 50010 (515) 555-0142 · hello@ironoak.example Hours Monday to Friday: 5 am to 10 pm Saturday and Sunday: 7 am to 7 pm Closed Thanksgiving and Christmas Day Demo business made for the say2 hackathon project. Not a real business.",
+  "tone": "friendly",
+  "effects": true,
+  "theme": "auto",
+  "type": "gym",
+  "brand": "#2F6B45",
+  "effect": {
+    "motion": "twinkle",
+    "emoji": "💪"
+  }
+}

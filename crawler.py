@@ -19,6 +19,21 @@ ACTION_HOSTS = ("opentable", "resy.com", "toasttab", "calendly", "vagaro", "book
                 "square.site", "doordash", "ubereats", "grubhub", "mindbody", "setmore", "acuityscheduling",
                 "exploretock", "sevenrooms", "chownow", "slicelife")
 SKIP_HOSTS = ("facebook.", "instagram.", "twitter.", "x.com", "tiktok.", "youtube.", "linkedin.", "pinterest.")
+# the business's own social pages (usually icons in the footer, with no text to read)
+SOCIALS = {"facebook.com": "Facebook", "instagram.com": "Instagram", "x.com": "X (Twitter)", "twitter.com": "X (Twitter)",
+           "tiktok.com": "TikTok", "youtube.com": "YouTube", "linkedin.com": "LinkedIn", "pinterest.com": "Pinterest",
+           "threads.net": "Threads", "yelp.com": "Yelp"}
+SHARE_PATHS = ("sharer", "share", "intent", "dialog", "plugins", "embed", "watch?v=")
+
+
+def social_of(link):
+    """'Instagram' for the business's own profile link, None for anything else (share buttons, posts)."""
+    p = urlparse(link)
+    host = p.netloc.lower().removeprefix("www.").removeprefix("m.")
+    name = next((n for h, n in SOCIALS.items() if host == h or host.endswith("." + h)), None)
+    if not name or not p.path.strip("/") or any(s in link.lower() for s in SHARE_PATHS):
+        return None
+    return name
 
 
 # Hosts where many different sites live under one domain, told apart by the path.
@@ -87,6 +102,11 @@ def safe_get(url, timeout=15):
                 raise ValueError(f"too big: {url}")
         r._content = data
         r.url = url
+        if "charset" not in r.headers.get("Content-Type", "").lower():
+            # no charset from the server: requests would guess Latin-1 and garble "café" or "·".
+            # Use the page's own <meta charset>, else UTF-8 (what almost every site uses).
+            m = re.search(rb'<meta[^>]+charset=["\']?([\w-]+)', data[:4096], re.I)
+            r.encoding = m.group(1).decode() if m else "utf-8"
         return r
     raise ValueError(f"too many redirects: {url}")
 
@@ -168,6 +188,8 @@ def crawl(start_url, progress=None):
     site_name = None
     description = None
     actions = {}
+    socials = {}
+    footer = None
 
     while to_visit and len(pages) < MAX_PAGES:
         url = to_visit.pop(0).split("#")[0]
@@ -219,6 +241,9 @@ def crawl(start_url, progress=None):
 
         for a in soup.find_all("a", href=True):
             link = urljoin(r.url, a["href"]).split("#")[0]
+            net = social_of(link)
+            if net and net not in socials:
+                socials[net] = link
             found = maybe_action(a, link, actions)
             if found:
                 say("action", {"kind": found["kind"]})
@@ -229,6 +254,8 @@ def crawl(start_url, progress=None):
             elif in_scope(link, scope):
                 to_visit.append(link)
 
+        if footer is None:               # the footer is the same on every page: keep it once, from the first page
+            footer = " ".join(" ".join(f.get_text(" ").split()) for f in soup.find_all("footer"))[:3000]
         for tag in soup(["script", "style", "noscript", "nav", "footer", "header"]):
             tag.decompose()
         title = page_title.strip() or url
@@ -238,7 +265,8 @@ def crawl(start_url, progress=None):
         say("page", {"count": len(pages)})
 
     return {"site": start_url, "name": site_name, "description": description, "logo": logo,
-            "actions": list(actions.values()), "pages": pages}
+            "actions": list(actions.values()), "pages": pages,
+            "socials": [{"name": n, "url": u} for n, u in socials.items()], "footer": footer or ""}
 
 
 if __name__ == "__main__":
