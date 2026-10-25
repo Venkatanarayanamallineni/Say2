@@ -1485,6 +1485,8 @@ function line(label, value = "", cls = "") {
 function finish(d, value) { if (d) { d.classList.remove("wait"); d.lastChild.textContent = value; } }
 function rule() { const d = document.createElement("div"); d.className = "r-rule"; receipt.appendChild(d); }
 function note(text, cls = "r-note") { const d = document.createElement("div"); d.className = cls; d.textContent = text; receipt.appendChild(d); return d; }
+const pdfName = f => { let n = String(f || ""); try { n = decodeURIComponent(n); } catch (e) {}
+  return n.replace(/\.pdf$/i, "").replace(/[-_+]+/g, " ").trim().toUpperCase() || "OK"; };   // "drinks-menu.pdf" -> "DRINKS MENU"
 const friendly = (r, d) => (r && r.status < 500 && typeof d.detail === "string") ? d.detail : "Something went wrong on our side. Please try again.";
 
 function resetGo() { $("go").disabled = false; $("go").textContent = "Hire my assistant"; paused = false; }
@@ -1539,7 +1541,7 @@ $("f").addEventListener("submit", async e => {
       catch { continue; }
       if (st.pages > 0 && !pages) { finish(open, "OK"); pages = line("READING PAGES", "", "wait"); }
       if (pages && st.stage === "reading") pages.firstChild.textContent = `READING PAGES (${st.pages})`;
-      while (pdfsShown < st.pdfs.length) line("FOUND A PDF", st.pdfs[pdfsShown++].toUpperCase());
+      while (pdfsShown < st.pdfs.length) line("FOUND A PDF", pdfName(st.pdfs[pdfsShown++]));
       if (st.logo && !logoLine) { logoLine = true; line("FOUND YOUR LOGO", "OK"); }
       if (st.actions > 0 && !bookLine) { bookLine = true; line("FOUND A BOOKING LINK", "OK"); }
       if (st.stage === "voice" && !voice) { if (pages) { pages.firstChild.textContent = "READING PAGES"; finish(pages, String(st.pages)); } voice = line("LEARNING YOUR VOICE", "", "wait"); }
@@ -1568,6 +1570,7 @@ $("f").addEventListener("submit", async e => {
   rule();
   await sleep(200); line("TOTAL", "1 LINE OF CODE");
   await sleep(200); note("YOUR INSTALL CARD IS BELOW");
+  if (token) { await sleep(200); note("PICK WHICH PAGES IT READS IN BACK OFFICE"); }
   await sleep(200); note("THANK YOU, COME AGAIN", "r-thanks");
 
   showInstall(sid, info, name, token);

@@ -305,7 +305,7 @@ def run_setup(job_id, req, url, sid, token):
         data["updated"] = int(time.time())
         old = read_own_site(sid)          # a re-read: keep everything the owner wrote in Back office
         if old and old.get("edit_hash") == data["edit_hash"]:
-            for k in ("corrections", "rules", "inbox", "claimed_t", "theme", "depth"):
+            for k in ("corrections", "rules", "inbox", "claimed_t", "theme", "depth", "hidden"):
                 if k in old and k not in data:
                     data[k] = old[k]
         if sum(len(p["text"]) for p in data["pages"]) > BIG_SITE_CHARS:
@@ -549,6 +549,7 @@ class OfficeReq(BaseModel):
     a: Optional[str] = None
     id: Optional[str] = None
     rules: Optional[list] = None
+    hidden: Optional[list] = None
 
 
 def office_state(data, sid):
@@ -556,7 +557,10 @@ def office_state(data, sid):
             "week": week_stats(sid),
             "inbox": fresh_inbox(data),
             "corrections": data.get("corrections") or [],
-            "rules": data.get("rules") or []}
+            "rules": data.get("rules") or [],
+            "brand": data.get("brand") or "",
+            "pages": [{"url": p["url"], "title": p["title"], "peek": p["text"][:300]} for p in data["pages"]],
+            "hidden": [u for u in data.get("hidden") or [] if any(p["url"] == u for p in data["pages"])]}
 
 
 def clean(text, limit):
@@ -607,6 +611,12 @@ def office(site_id: str, req: OfficeReq, request: Request):
     elif req.action == "set_rules":
         rules = [" ".join(str(r).split())[:200] for r in (req.rules or []) if str(r).strip()]
         data["rules"] = rules[:15]
+    elif req.action == "set_hidden":           # pages the assistant should not use
+        urls = {p["url"] for p in data["pages"]}
+        hidden = [u for u in dict.fromkeys(str(u) for u in (req.hidden or [])) if u in urls]
+        if len(hidden) >= len(urls):
+            raise HTTPException(400, "Keep at least one page showing, or the assistant has nothing to read.")
+        data["hidden"] = hidden
     else:
         raise HTTPException(400, "Unknown action.")
     save_site(site_id, data)

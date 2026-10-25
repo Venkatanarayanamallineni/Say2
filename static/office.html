@@ -17,10 +17,12 @@
 <style>
   :root{--bg:#DCD7CE;--paper:#ECE8E1;--paper-2:#F5F2ED;--ink:#24211D;--muted:#5B554C;--line:rgba(36,33,29,.14);
     --brass:#A88B5A;--brass-soft:rgba(168,139,90,.24);--ivory:#F3EEE4;--soft:0 24px 48px -28px rgba(36,33,29,.4),0 2px 6px rgba(36,33,29,.06);
-    --on-ink:#F3EEE4;--field:#fff;--body2:#3a362f;--zero:rgba(36,33,29,.12)}
+    --on-ink:#F3EEE4;--field:#fff;--body2:#3a362f;--zero:rgba(36,33,29,.12);
+    --brandc:#6B4A3A;--accent:var(--brandc);--accent-text:var(--brandc)}
   :root[data-theme=dark]{--bg:#15130F;--paper:#1F1C18;--paper-2:#28241F;--ink:#EFE8DC;--muted:#A9A194;--line:rgba(239,232,220,.12);
     --brass:#C4A56C;--brass-soft:rgba(196,165,108,.22);--on-ink:#16140F;--field:#1F1C18;--body2:#DCD4C6;--zero:rgba(239,232,220,.12);
-    --soft:0 24px 48px -28px rgba(0,0,0,.7),0 2px 6px rgba(0,0,0,.3)}
+    --soft:0 24px 48px -28px rgba(0,0,0,.7),0 2px 6px rgba(0,0,0,.3);
+    --accent:color-mix(in srgb,var(--brandc) 75%,#F3EEE4);--accent-text:color-mix(in srgb,var(--brandc) 45%,#F3EEE4)}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   body.embed{background:transparent}
@@ -42,7 +44,9 @@
   body.embed section{box-shadow:none;background:var(--paper-2)}
   .sh{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
   h2{font:400 26px/1.15 "Instrument Serif",Georgia,serif;margin:0}
-  .count{font-size:13px;border-radius:999px;padding:1px 9px;background:var(--ink);color:var(--on-ink)}
+  .count{font-size:13px;border-radius:999px;padding:1px 9px;background:var(--accent);color:#fff}
+  :root[data-theme=dark] .count{color:#16140F}
+  h1 em{font-style:italic;color:var(--accent-text)}
   .count.zero{background:var(--zero);color:var(--muted)}
   .hint{color:var(--muted);font-size:14.5px;margin:0 0 14px}
   .item{border-top:1px solid var(--line);padding:14px 0}
@@ -58,7 +62,7 @@
   .row input[type=text]{flex:1;min-width:200px}
   button{font:inherit;font-size:14.5px;border-radius:999px;padding:9px 16px;cursor:pointer;transition:background .3s}
   .primary{border:none;background:var(--ink);color:var(--on-ink)}
-  .primary:hover{opacity:.88}
+  .primary:hover{background:var(--accent);color:#fff}
   .primary:disabled{opacity:.6;cursor:wait}
   .ghost{border:1px solid var(--line);background:transparent;color:var(--ink)}
   .ghost:hover{background:var(--brass-soft)}
@@ -79,6 +83,23 @@
   .week span{font-size:13px;color:var(--muted)}
   .week .warn b{color:#B4232F}
   .week-note{font-size:12.5px;color:var(--muted);margin:0 0 6px}
+  .pg{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding:10px 0}
+  .pg:first-child{border-top:none}
+  .pg .pt{flex:1;min-width:0}
+  .pg .pt b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pg .pt span{display:block;font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pg .pt .kind{display:inline;font-size:11.5px;letter-spacing:.06em;color:var(--accent-text);margin-right:6px}
+  .pg.off .pt{opacity:.5}
+  .pg.off .pt b{text-decoration:line-through}
+  .sw{position:relative;width:46px;height:26px;flex:none}
+  .sw input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+  .sw i{position:absolute;inset:0;border-radius:999px;background:var(--zero);transition:background .2s;pointer-events:none}
+  .sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--paper-2);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+  .sw input:checked+i{background:var(--accent)}
+  .sw input:checked+i::after{transform:translateX(20px)}
+  .sw input:focus-visible+i{outline:2px solid var(--ink);outline-offset:2px}
+  #pages{max-height:420px;overflow:auto}
+  @media (prefers-reduced-motion:reduce){.sw i,.sw i::after{transition:none}}
   @media (max-width:620px){.grid2{grid-template-columns:1fr}.week{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -126,6 +147,13 @@
     <div class="row"><button class="primary" id="saveRules" type="button">Save rules</button><span class="status" id="rulesStatus" role="status"></span></div>
   </section>
 
+  <section aria-labelledby="h-pages">
+    <div class="sh"><h2 id="h-pages">Pages it reads</h2><span class="count zero" id="pageCount">0</span></div>
+    <p class="hint">Switch off anything customers shouldn't get answers from, like old promos or job posts. Hidden pages are never used or linked.</p>
+    <div id="pages"></div>
+    <div class="row"><button class="primary" id="savePages" type="button">Save pages</button><span class="status" id="pagesStatus" role="status"></span></div>
+  </section>
+
   <div class="row"><button class="link" id="refresh" type="button">Refresh</button></div>
 </main>
 
@@ -160,8 +188,44 @@ const ago = t => {
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const setCount = (id, n) => { const c = $(id); c.textContent = n; c.classList.toggle("zero", !n); };
 
+
+// page names an owner recognises: "Menu", not "/static/demo/dawn/menu.html"
+const isPdf = u => /\.pdf($|[?#])/i.test(u);
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+function fileName(url) {
+  let last = ""; try { last = decodeURIComponent(new URL(url).pathname.split("/").filter(Boolean).pop() || ""); } catch (e) {}
+  return last.replace(/\.(pdf|html?|php|aspx?)$/i, "").replace(/[-_+]+/g, " ").trim();
+}
+function pageName(p, i, biz) {
+  if (i === 0) return "Home page";
+  let t = (p.title || "").replace(/^PDF:\s*/i, "");
+  if (isPdf(p.url) && /\.pdf$/i.test(t)) t = "";             // a bare file name: make it readable below
+  const bizL = (biz || "").trim().toLowerCase();
+  const parts = t.split(/\s+[|–—·•:-]\s+/).map(x => x.trim()).filter(x => x && x.toLowerCase() !== bizL);
+  t = parts[0] || "";
+  return cap(t) || fileName(p.url).replace(/\b[a-z]/g, c => c.toUpperCase()) || "Page";   // "iron-oak-policies.pdf" -> "Iron Oak Policies"
+}
+function peek(p, name) {
+  let t = (p.peek || "").replace(/\s+/g, " ").trim();
+  for (const lead of [p.title || "", name]) if (lead && t.toLowerCase().startsWith(lead.toLowerCase())) t = t.slice(lead.length).trim();
+  t = t.replace(/^[|·:–—-]\s*/, "");
+  return t.length > 110 ? t.slice(0, 110).replace(/\s+\S*$/, "") + "…" : t;
+}
+// a brand colour that is too light to read on paper gets darkened
+function readable(hex) {
+  const n = parseInt(hex.slice(1), 16), rgb = [n >> 16, (n >> 8) & 255, n & 255];
+  const lum = rgb.map(c => { c /= 255; return c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; });
+  const L = .2126 * lum[0] + .7152 * lum[1] + .0722 * lum[2];
+  if (L <= .18) return hex;
+  const k = Math.sqrt(.18 / L);
+  return "#" + rgb.map(c => Math.round(c * k).toString(16).padStart(2, "0")).join("");
+}
+
 function render(st) {
-  $("title").textContent = st.name ? `Teach ${st.name}'s front desk.` : "Teach your front desk.";
+  if (st.brand && /^#[0-9a-f]{6}$/i.test(st.brand)) document.documentElement.style.setProperty("--brandc", readable(st.brand));
+  const t = $("title"); t.textContent = "Teach ";
+  if (st.name) { t.append(el("em", null, /s$/i.test(st.name) ? st.name + "’" : st.name + "’s"), " front desk."); }
+  else t.append("your front desk.");
 
   const w = st.week || { q: 0, self: 0, owner: 0 };
   $("wQ").textContent = w.q; $("wSelf").textContent = w.self; $("wOwner").textContent = w.owner;
@@ -200,6 +264,28 @@ function render(st) {
     box.appendChild(del); fixes.appendChild(box);
   });
 
+  const list = $("pages"); list.textContent = "";
+  const off = new Set(st.hidden || []);
+  const pages = st.pages || [];
+  const count = () => { const on = list.querySelectorAll("input:checked").length; $("pageCount").textContent = `${on} of ${pages.length} showing`; $("pageCount").classList.toggle("zero", !on); };
+  pages.forEach((p, i) => {
+    const name = pageName(p, i, st.name);
+    const row = el("label", "pg" + (off.has(p.url) ? " off" : ""));
+    const txt = el("div", "pt"); const b = el("b", null, name);
+    const sub = el("span");
+    if (isPdf(p.url)) sub.appendChild(el("span", "kind", "PDF"));
+    sub.append(peek(p, name));
+    txt.append(b, sub);
+    row.title = p.url;
+    const sw = el("span", "sw"); const box = el("input"); box.type = "checkbox"; box.checked = !off.has(p.url); box.value = p.url;
+    box.setAttribute("aria-label", `Use ${name}`);
+    box.onchange = () => { row.classList.toggle("off", !box.checked); count(); $("pagesStatus").textContent = "Not saved yet."; };
+    sw.append(box, el("i"));
+    row.append(txt, sw); list.appendChild(row);
+  });
+  if (!pages.length) list.appendChild(el("p", "empty", "No pages yet."));
+  count();
+
   if (document.activeElement !== $("rules")) $("rules").value = st.rules.join("\n");
 }
 
@@ -222,6 +308,13 @@ if (site && token) {
     try { render(await call("set_rules", { rules: $("rules").value.split("\n") })); $("rulesStatus").textContent = "Saved."; }
     catch (e) { $("rulesStatus").textContent = e.message; }
     finally { $("saveRules").disabled = false; }
+  };
+  $("savePages").onclick = async () => {
+    const hidden = [...$("pages").querySelectorAll("input:not(:checked)")].map(b => b.value);
+    $("savePages").disabled = true; $("pagesStatus").textContent = "";
+    try { render(await call("set_hidden", { hidden })); $("pagesStatus").textContent = "Saved. The assistant uses this right away."; }
+    catch (e) { $("pagesStatus").textContent = e.message; }
+    finally { $("savePages").disabled = false; }
   };
   $("refresh").onclick = load;
   load();

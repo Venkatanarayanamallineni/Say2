@@ -94,6 +94,12 @@ def words(t):
     return {w for w in re.findall(r"[a-z0-9]+", t.lower()) if len(w) > 2 and w not in STOP}
 
 
+def shown_pages(data):
+    """The pages the owner chose to show. Hidden pages in Back office never reach the model."""
+    hidden = set(data.get("hidden") or [])
+    return [p for p in data["pages"] if p["url"] not in hidden] or data["pages"][:1]
+
+
 def pick_pages(data, question, history):
     """Smart mode: the homepage plus the pages that share the most words with the question."""
     q = words(question + " " + " ".join(h["content"] for h in (history or [])[-2:] if h.get("role") == "user"))
@@ -101,16 +107,16 @@ def pick_pages(data, question, history):
         head = words(p["title"] + " " + p["url"].replace("/", " ").replace("-", " "))
         body = words(p["text"][:20000])
         return 3 * len(q & head) + len(q & body)
-    pages = data["pages"]
+    pages = shown_pages(data)
     ranked = sorted(pages[1:], key=lambda p: (-score(p), -p["text"].count("$")))
     return pages[:1] + ranked
 
 
 def build_context(data, question="", history=None):
-    total_site = sum(len(p["text"]) for p in data["pages"])
+    total_site = sum(len(p["text"]) for p in shown_pages(data))
     smart = data.get("depth") == "smart" and total_site > SMART_CHARS
     limit = SMART_CHARS if smart else MAX_TOTAL_CHARS
-    pages = pick_pages(data, question, history) if smart else sorted(data["pages"], key=lambda p: -p["text"].count("$"))
+    pages = pick_pages(data, question, history) if smart else sorted(shown_pages(data), key=lambda p: -p["text"].count("$"))
     parts, total, seen = [], 0, set()
     for p in pages:
         key = p["text"][:3000]
@@ -127,7 +133,8 @@ def build_context(data, question="", history=None):
         parts.insert(0, "WHERE TO FOLLOW US (our social media):\n" + "\n".join(f"- {s['name']}: {s['url']}" for s in socials))
     if data.get("footer"):
         parts.insert(0, "OUR SITE FOOTER (shown on every page; often has hours, phone and address):\n" + data["footer"][:3000])
-    acts = data.get("actions") or []
+    hidden = set(data.get("hidden") or [])
+    acts = [a for a in data.get("actions") or [] if a["url"] not in hidden]   # a hidden booking page isn't offered either
     if acts:
         lines = "\n".join(f"- {a['kind']}: {a['text'] or a['kind']} -> {a['url']}" for a in acts)
         parts.insert(0, "OUR ACTION LINKS (booking, reservations, ordering):\n" + lines)
