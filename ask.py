@@ -4,12 +4,63 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("NEBIUS_API_KEY"),
-                base_url=os.getenv("NEBIUS_BASE_URL"))
-MODEL = os.getenv("MODEL_ID")
+
+# ---------- AI providers ----------
+# Each provider has its own lines in .env:  GEMINI_API_KEY, GEMINI_MODEL, (GEMINI_BASE_URL), (GEMINI_PRICE_IN_PER_M) ...
+# AI_PROVIDERS picks the order, like "nebius,groq": the first one answers, the next takes over if it fails.
+# Any OpenAI-compatible provider works; the ones with a URL here don't need a base URL in .env.
+KNOWN = {
+    "gemini": ("Google", "https://generativelanguage.googleapis.com/v1beta/openai/"),
+    "groq": ("Groq", "https://api.groq.com/openai/v1"),
+    "nvidia": ("NVIDIA", "https://integrate.api.nvidia.com/v1"),
+    "nebius": ("Nebius", ""),                                # base URL from your Token Factory page
+    "deepinfra": ("DeepInfra", "https://api.deepinfra.com/v1/openai"),
+    "openrouter": ("OpenRouter", "https://openrouter.ai/api/v1"),
+}
+
+
+def env(name, *fallbacks):
+    for n in (name,) + fallbacks:
+        v = (os.getenv(n) or "").strip()
+        if v:
+            return v
+    return ""
+
+
+def price(v):
+    try:
+        return float(v)
+    except ValueError:
+        return 0.0
+
+
+def load_providers():
+    names = [n.strip().lower() for n in env("AI_PROVIDERS").split(",") if n.strip()] or list(KNOWN)
+    out = []
+    for n in names:
+        P = n.upper()
+        old = n == "nebius"                                  # the hackathon names still work for Nebius
+        key = env(f"{P}_API_KEY")
+        model = env(f"{P}_MODEL", *(["MODEL_ID"] if old else []))
+        base = env(f"{P}_BASE_URL") or KNOWN.get(n, ("", ""))[1]
+        if not (key and model and base):
+            continue                                         # not set up: skip it quietly
+        out.append({"name": n, "label": KNOWN.get(n, (n.title(), ""))[0], "model": model,
+                    "client": OpenAI(api_key=key, base_url=base, timeout=40, max_retries=1),
+                    "in": price(env(f"{P}_PRICE_IN_PER_M", *(["PRICE_IN_PER_M"] if old else []))),
+                    "out": price(env(f"{P}_PRICE_OUT_PER_M", *(["PRICE_OUT_PER_M"] if old else [])))})
+    return out
+
+
+PROVIDERS = load_providers()
+if not PROVIDERS:
+    print("No AI provider is set up. In .env, set AI_PROVIDERS and that provider's _API_KEY and _MODEL (see .env.example)")
+else:
+    print("AI providers, in order:", ", ".join(f"{p['label']} ({p['model']})" for p in PROVIDERS))
+
 MAX_TOTAL_CHARS = 250000   # "full": the whole site, up to this much
 SMART_CHARS = 40000        # "smart": only the pages that match the question, up to this much
-MAX_TOKENS = 1500          # room for Nemotron's reasoning (keeping it on took our test from 35/40 to 40/40)
+MAX_TOKENS = 1500          # room for the model's reasoning (keeping it on took our test from 35/40 to 40/40)
 STOP = set("a an the and or of to in on for with at by from is are was were be do does did can could would should i you we our your my me it this that what which who when where how much many any some there have has get".split())
 
 # Owner picks one at setup. Changes how much humor the bot uses.
@@ -156,7 +207,22 @@ def owner_block(data):
 
 
 def complete(messages, **kw):
-    return client.chat.completions.create(model=MODEL, messages=messages, **kw)
+    """Asks the first provider; if it fails (down, out of quota, too slow), the next one takes over.
+    Returns (response, provider)."""
+    if not PROVIDERS:
+        raise RuntimeError("no AI provider is set up in .env")
+    last = None
+    for p in PROVIDERS:
+        try:
+            return p["client"].chat.completions.create(model=p["model"], messages=messages, **kw), p
+        except Exception as e:
+            print(f"{p['label']} failed ({type(e).__name__}: {str(e)[:120]}), trying the next provider")
+            last = e
+    raise last
+
+
+def cost_of(p, tokens):
+    return round((tokens["in"] * p["in"] + tokens["out"] * p["out"]) / 1_000_000, 6)
 
 
 def tidy(answer):
@@ -167,15 +233,30 @@ def tidy(answer):
     answer = re.sub(r"(\d|am|pm)\s*[\u2013\u2014]\s*(\$?\d)", r"\1 to \2", answer)      # $2.75-$4.75 -> $2.75 to $4.75
     answer = re.sub(r"\s*[\u2013\u2014]\s*", ", ", answer)                               # no long dashes in sentences
     answer = re.sub(r",\s*,", ",", answer)
+    answer = re.sub(r"([a-z)])([.!?])([A-Z][a-z])", r"\1\2 \3", answer)                  # "brunch.We" -> "brunch. We"
     # an Action line must be a link; if the model put a phone or email there, keep it as plain text
-    answer = re.sub(r"(?im)^Action:\s*(?!https?://)", "", answer)
+    answer = re.sub(r"(?im)^Action:(?![ \t]*https?://)[ \t]*", "", answer)
     return answer
 
 
 # distinctive pieces of the instructions above; none of them belongs in a customer answer
 LEAK_MARKERS = ("truth rules", "safety rules", "understanding customers", "how to answer:", "when something is missing",
-                "our information:", "our action links", "[[no_answer]]", "never say \"the website\"",
+                "our information:", "our action links", "never say \"the website\"",
                 "talk like a friendly team member", "you're chatting with a customer on our website")
+
+
+NO_ANSWER = re.compile(r"\[\[\s*no[_ ]answer\s*\]\]", re.I)
+
+
+def visible_text(content):
+    """The part of a reply meant for the customer. Some models put their thinking in the reply:
+    "<think>...</think>answer", or only the closing tag. Unfinished thinking means no answer yet."""
+    text = content or ""
+    if "</think>" in text:
+        text = text.rsplit("</think>", 1)[1]
+    elif "<think>" in text:
+        return ""
+    return text.strip()
 
 
 def leaked(answer):
@@ -184,36 +265,40 @@ def leaked(answer):
 
 
 def ask(data, history, question):
-    """Returns {"answer", "unanswered", "tokens"}."""
+    """Returns {"answer", "unanswered", "tokens", "provider", "model", "cost"}."""
     system = SYSTEM.format(name=business_name(data),
                            tone=TONES.get(data.get("tone"), TONES["friendly"]),
                            owner=owner_block(data),
                            context=build_context(data, question, history))
     messages = [{"role": "system", "content": system}] + history + [{"role": "user", "content": question}]
     def call(max_tokens):
-        r = complete(messages, temperature=0.2, max_tokens=max_tokens)
-        text = re.sub(r"<think>.*?</think>", "", r.choices[0].message.content or "", flags=re.S).strip()
-        return r, text
+        r, p = complete(messages, temperature=0.2, max_tokens=max_tokens)
+        choice = r.choices[0]
+        text = visible_text(choice.message.content)
+        cut = getattr(choice, "finish_reason", None) == "length"     # ran out of room mid-answer
+        return r, p, ("" if cut else text)
     try:
-        r, answer = call(MAX_TOKENS)
-    except Exception as e:      # a brief network or server hiccup: try once more before giving up
+        r, p, answer = call(MAX_TOKENS)
+    except Exception as e:      # every provider failed: a brief hiccup, so try the list once more before giving up
         print("model call failed, retrying once:", e)
         time.sleep(1)
-        r, answer = call(MAX_TOKENS)
-    if not answer:              # the reasoning used the whole budget: one more try with twice the room
-        print("empty answer, retrying with more room")
-        r, answer = call(MAX_TOKENS * 2)
-    if not answer:              # no made-up filler: the server reports it as a failed answer
-        raise RuntimeError("the model returned an empty answer")
+        r, p, answer = call(MAX_TOKENS)
+    if not answer:              # empty or cut off (the thinking used the budget): one more try with twice the room
+        print("empty or cut-off answer, retrying with more room")
+        r, p, answer = call(MAX_TOKENS * 2)
+    if not answer:              # never show half a sentence or made-up filler: the server reports a failed answer
+        raise RuntimeError("the model returned an empty or cut-off answer")
     answer = tidy(answer)
-    if leaked(answer.replace("[[NO_ANSWER]]", "")):      # the model slipped: never show our instructions to a customer
-        print("blocked an answer that repeated the instructions")
+    unanswered = bool(NO_ANSWER.search(answer))
+    answer = NO_ANSWER.sub("", answer).strip()
+    if leaked(answer):          # the model slipped: never show our instructions to a customer
+        print("blocked an answer that repeated the instructions:", answer[:300].replace("\n", " "))
         answer = f"Sorry, I can't share that. I'm happy to help with anything about {business_name(data)}, though. What would you like to know?"
-    unanswered = "[[NO_ANSWER]]" in answer
-    answer = answer.replace("[[NO_ANSWER]]", "").strip()
+        unanswered = False
     usage = getattr(r, "usage", None)
     tokens = {"in": getattr(usage, "prompt_tokens", 0) or 0, "out": getattr(usage, "completion_tokens", 0) or 0}
-    return {"answer": answer, "unanswered": unanswered, "tokens": tokens}
+    return {"answer": answer, "unanswered": unanswered, "tokens": tokens,
+            "provider": p["label"], "model": p["model"], "cost": cost_of(p, tokens)}
 
 
 TYPES = ["food", "drinks", "beauty", "fashion", "books", "education", "other"]
@@ -221,7 +306,7 @@ MOTIONS = ["steam", "rise", "fall", "twinkle"]
 
 
 def detect_style(data):
-    """Ask Nemotron once: what kind of business, which emoji, which motion for the bubble effect."""
+    """Ask the model once: what kind of business, which emoji, which motion for the bubble effect."""
     sample = " ".join(p["text"][:1500] for p in data["pages"][:3])
     prompt = ('Look at this business and reply with JSON only, like {"type":"food","emoji":"🍕","motion":"steam"}.\n'
               "type: one of " + ", ".join(TYPES) + ".\n"
@@ -230,8 +315,8 @@ def detect_style(data):
               "motion: steam (hot food or coffee), rise (drinks, bubbles), fall (flowers, leaves, pages), "
               "twinkle (beauty, jewelry, fashion, anything else).\n\n" + sample)
     try:
-        r = complete([{"role": "user", "content": prompt}], temperature=0, max_tokens=200)
-        out = re.sub(r"<think>.*?</think>", "", r.choices[0].message.content or "", flags=re.S)
+        r, _ = complete([{"role": "user", "content": prompt}], temperature=0, max_tokens=400)
+        out = visible_text(r.choices[0].message.content)
         j = json.loads(re.search(r"\{.*?\}", out, re.S).group(0))
         return {"type": j.get("type") if j.get("type") in TYPES else "other",
                 "emoji": str(j.get("emoji", "")).strip()[:4] or "✦",
